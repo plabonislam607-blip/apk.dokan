@@ -1,0 +1,2351 @@
+<!DOCTYPE html>
+<html lang="bn" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+<meta name="theme-color" content="#0e1014" />
+<title>Admin — AppVerse Control Panel</title>
+<style>
+/* ============================================================
+   THEME TOKENS
+   ============================================================ */
+:root{
+  --bg:#0b0d12; --bg-2:#11141c; --card:#161a24; --card-2:#1d2230;
+  --text:#eaeef5; --muted:#8b95a8; --border:#242b3a;
+  --primary:#4f7cff; --primary-2:#8b5cf6;
+  --success:#22c55e; --danger:#ef4444; --warn:#f59e0b; --info:#22d3ee;
+  --radius:14px;
+  --sidebar-w:248px; --header-h:60px;
+  --shadow:0 10px 30px rgba(0,0,0,.5);
+}
+html[data-theme="light"]{
+  --bg:#f4f6fb; --bg-2:#ffffff; --card:#ffffff; --card-2:#eef2f9;
+  --text:#0f172a; --muted:#5b6b83; --border:#e3e9f2;
+  --shadow:0 8px 24px rgba(15,23,42,.08);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;overflow-x:hidden}
+body{
+  background:var(--bg);color:var(--text);font-size:14.5px;line-height:1.5;
+  font-family:'Segoe UI',system-ui,-apple-system,'Noto Sans Bengali',Roboto,Arial,sans-serif;
+  transition:background .25s,color .25s;
+}
+img{max-width:100%;display:block}
+button,input,textarea,select{font-family:inherit;font-size:inherit;color:inherit}
+button{cursor:pointer;border:none;background:none}
+a{color:var(--primary);text-decoration:none}
+::-webkit-scrollbar{width:9px;height:9px}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:9px}
+::-webkit-scrollbar-track{background:transparent}
+
+/* ============================================================
+   LOGIN GATE
+   ============================================================ */
+#loginGate{
+  position:fixed;inset:0;z-index:999;display:grid;place-items:center;
+  background:radial-gradient(circle at 30% 20%,rgba(79,124,255,.18),transparent 60%),
+             radial-gradient(circle at 70% 80%,rgba(139,92,246,.15),transparent 60%),
+             var(--bg);
+  padding:20px;overflow-y:auto;
+}
+#loginGate .card{
+  background:var(--card);border:1px solid var(--border);border-radius:22px;
+  padding:32px 26px;width:100%;max-width:420px;box-shadow:var(--shadow);
+}
+#loginGate .logo{
+  width:64px;height:64px;border-radius:18px;margin:0 auto 16px;
+  background:linear-gradient(135deg,var(--primary),var(--primary-2));
+  display:grid;place-items:center;font-size:30px;font-weight:800;color:#fff;
+  box-shadow:0 12px 30px rgba(79,124,255,.4);
+}
+#loginGate h1{margin:0 0 6px;font-size:22px;text-align:center;font-weight:800;letter-spacing:-.4px}
+#loginGate .sub{text-align:center;color:var(--muted);font-size:13px;margin-bottom:24px}
+#loginGate .dbg{
+  margin-top:16px;padding:10px 12px;border-radius:10px;background:var(--card-2);
+  border:1px solid var(--border);font-size:11.5px;color:var(--muted);line-height:1.6;
+}
+#loginGate .dbg b{color:var(--text)}
+
+/* ============================================================
+   LAYOUT
+   ============================================================ */
+.app{display:none}
+.app.show{display:block}
+
+.sidebar{
+  position:fixed;top:0;left:0;bottom:0;width:var(--sidebar-w);z-index:80;
+  background:var(--bg-2);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;transform:translateX(-100%);
+  transition:transform .25s cubic-bezier(.4,0,.2,1);
+}
+.sidebar.open{transform:translateX(0)}
+.sb-brand{
+  display:flex;align-items:center;gap:10px;padding:18px;
+  border-bottom:1px solid var(--border);
+}
+.sb-brand .logo{
+  width:36px;height:36px;border-radius:10px;flex:0 0 36px;
+  background:linear-gradient(135deg,var(--primary),var(--primary-2));
+  display:grid;place-items:center;font-size:17px;font-weight:800;color:#fff;
+  overflow:hidden;
+}
+.sb-brand h2{margin:0;font-size:15px;font-weight:800;letter-spacing:-.2px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px}
+.sb-brand p{margin:0;font-size:10.5px;color:var(--muted);letter-spacing:.5px;text-transform:uppercase}
+
+.sb-nav{flex:1;overflow-y:auto;padding:12px 10px}
+.sb-item{
+  display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:10px;
+  font-size:13.5px;font-weight:600;color:var(--muted);transition:.15s;
+  margin-bottom:2px;width:100%;text-align:left;position:relative;
+}
+.sb-item:hover{background:var(--card);color:var(--text)}
+.sb-item.active{background:linear-gradient(90deg,rgba(79,124,255,.18),transparent);color:var(--primary)}
+.sb-item.active::before{
+  content:'';position:absolute;left:0;top:8px;bottom:8px;width:3px;
+  border-radius:0 4px 4px 0;background:var(--primary);
+}
+.sb-item .ic{width:20px;height:20px;flex:0 0 20px;display:grid;place-items:center;font-size:15px}
+.sb-item .badge{
+  margin-left:auto;background:var(--danger);color:#fff;font-size:10px;font-weight:700;
+  padding:1px 7px;border-radius:9px;min-width:20px;text-align:center;
+}
+
+.sb-foot{padding:12px;border-top:1px solid var(--border);font-size:12px;color:var(--muted)}
+.sb-foot .usr{display:flex;align-items:center;gap:9px;margin-bottom:10px}
+.sb-foot .usr .av{
+  width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,var(--primary),var(--primary-2));
+  display:grid;place-items:center;color:#fff;font-weight:700;font-size:13px;flex:0 0 32px;
+}
+.sb-foot .usr .info{flex:1;min-width:0}
+.sb-foot .usr .info b{display:block;font-size:12.5px;color:var(--text);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sb-foot .usr .info span{font-size:10.5px;color:var(--muted);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+
+.sb-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:75;display:none;
+}
+.sb-overlay.show{display:block}
+
+.main{padding-top:var(--header-h)}
+.topbar{
+  position:fixed;top:0;left:0;right:0;height:var(--header-h);z-index:70;
+  background:rgba(11,13,18,.85);
+  backdrop-filter:saturate(180%) blur(14px);-webkit-backdrop-filter:saturate(180%) blur(14px);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:10px;padding:0 14px;
+}
+html[data-theme="light"] .topbar{background:rgba(244,246,251,.85)}
+.topbar h1{font-size:16px;font-weight:800;margin:0;letter-spacing:-.3px}
+.topbar .spacer{flex:1}
+.icon-btn{
+  width:38px;height:38px;border-radius:10px;display:grid;place-items:center;
+  transition:.15s;color:var(--text);position:relative;
+}
+.icon-btn:hover{background:var(--card-2)}
+.icon-btn:active{transform:scale(.92)}
+
+.content{padding:18px 14px 60px;max-width:1440px;margin:0 auto}
+
+.conn-status{
+  display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;
+  padding:4px 10px;border-radius:999px;
+}
+.conn-status.on{background:rgba(34,197,94,.15);color:var(--success)}
+.conn-status.off{background:rgba(239,68,68,.15);color:var(--danger)}
+.conn-status .dot{width:7px;height:7px;border-radius:50%;background:currentColor;
+  animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* ============================================================
+   VIEWS
+   ============================================================ */
+.av{display:none;animation:fadeUp .25s ease}
+.av.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+.view-head{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  flex-wrap:wrap;margin-bottom:16px;
+}
+.view-head h2{margin:0;font-size:19px;font-weight:800;letter-spacing:-.3px}
+.view-head p{margin:2px 0 0;font-size:12.5px;color:var(--muted)}
+
+/* ============================================================
+   STAT CARDS
+   ============================================================ */
+.stats-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));
+  gap:12px;margin-bottom:22px;
+}
+.stat{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:15px;position:relative;overflow:hidden;
+}
+.stat::after{
+  content:'';position:absolute;right:-30px;top:-30px;width:100px;height:100px;
+  border-radius:50%;background:radial-gradient(circle,rgba(79,124,255,.15),transparent 70%);
+}
+.stat .si{font-size:20px;margin-bottom:9px}
+.stat .sv{font-size:24px;font-weight:800;letter-spacing:-.5px;line-height:1.1}
+.stat .sl{font-size:11.5px;color:var(--muted);margin-top:4px;text-transform:uppercase;letter-spacing:.4px;font-weight:600}
+
+/* ============================================================
+   CARDS / TABLES
+   ============================================================ */
+.card{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  overflow:hidden;margin-bottom:16px;
+}
+.card-head{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:14px 16px;border-bottom:1px solid var(--border);flex-wrap:wrap;
+}
+.card-head h3{margin:0;font-size:14.5px;font-weight:800}
+.card-head .actions{display:flex;gap:8px;flex-wrap:wrap}
+.card-body{padding:16px}
+.card-body.p0{padding:0}
+
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead th{
+  text-align:left;padding:11px 14px;font-size:11px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.5px;color:var(--muted);
+  background:var(--card-2);border-bottom:1px solid var(--border);white-space:nowrap;
+}
+tbody td{
+  padding:11px 14px;border-bottom:1px solid var(--border);
+  vertical-align:middle;font-size:13px;
+}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:var(--card-2)}
+.tbl-app{display:flex;align-items:center;gap:10px;min-width:180px}
+.tbl-app .ic{width:38px;height:38px;border-radius:10px;flex:0 0 38px;overflow:hidden;background:var(--card-2)}
+.tbl-app .ic img{width:100%;height:100%;object-fit:cover}
+.tbl-app .ic .ph{
+  width:100%;height:100%;display:grid;place-items:center;font-weight:800;color:#fff;
+  background:linear-gradient(135deg,var(--primary),var(--primary-2));font-size:14px;
+}
+.tbl-app .tx{min-width:0}
+.tbl-app .tx b{display:block;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px}
+.tbl-app .tx span{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px;display:block}
+
+.pill{
+  display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:700;
+  padding:3px 9px;border-radius:999px;letter-spacing:.3px;text-transform:uppercase;
+  white-space:nowrap;
+}
+.pill.on{background:rgba(34,197,94,.15);color:#22c55e}
+.pill.off{background:rgba(139,149,168,.15);color:var(--muted)}
+.pill.warn{background:rgba(245,158,11,.15);color:#f59e0b}
+.pill.danger{background:rgba(239,68,68,.15);color:#ef4444}
+.pill.info{background:rgba(34,211,238,.15);color:#22d3ee}
+
+/* ============================================================
+   BUTTONS / FORMS
+   ============================================================ */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:7px;
+  height:40px;padding:0 16px;border-radius:11px;font-weight:700;font-size:13.5px;
+  transition:.15s;white-space:nowrap;
+}
+.btn:active{transform:scale(.97)}
+.btn:disabled{opacity:.5;pointer-events:none}
+.btn-primary{background:linear-gradient(135deg,var(--primary),var(--primary-2));color:#fff;box-shadow:0 6px 16px rgba(79,124,255,.3)}
+.btn-primary:hover{filter:brightness(1.08)}
+.btn-ghost{background:var(--card-2);color:var(--text);border:1px solid var(--border)}
+.btn-ghost:hover{background:var(--card)}
+.btn-danger{background:var(--danger);color:#fff}
+.btn-success{background:var(--success);color:#fff}
+.btn-sm{height:32px;padding:0 11px;font-size:12px;border-radius:9px}
+.btn-xs{height:28px;padding:0 9px;font-size:11.5px;border-radius:8px}
+.btn-block{width:100%}
+
+.field{margin-bottom:14px}
+.field label{display:block;font-size:12px;font-weight:700;margin-bottom:6px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+.input,textarea.input,select.input{
+  width:100%;height:42px;border-radius:11px;border:1px solid var(--border);
+  background:var(--bg-2);padding:0 13px;outline:none;transition:.15s;color:var(--text);
+}
+textarea.input{height:auto;padding:10px 13px;resize:vertical;min-height:82px;line-height:1.55;font-family:inherit}
+.input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(79,124,255,.14)}
+.input::placeholder{color:var(--muted);opacity:.7}
+select.input{cursor:pointer;-webkit-appearance:none;appearance:none;
+  background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);
+  background-position:calc(100% - 16px) 50%,calc(100% - 11px) 50%;
+  background-size:5px 5px,5px 5px;background-repeat:no-repeat;padding-right:34px;
+}
+.form-grid{display:grid;grid-template-columns:1fr;gap:0 14px}
+.form-row-2{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}
+.form-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0 14px}
+.check-row{display:flex;align-items:center;gap:9px;padding:10px 12px;background:var(--bg-2);
+  border:1px solid var(--border);border-radius:11px;cursor:pointer;font-size:13px;font-weight:600;user-select:none}
+.check-row input{width:17px;height:17px;accent-color:var(--primary);cursor:pointer}
+
+/* ============================================================
+   MODAL / SHEET
+   ============================================================ */
+.overlay{
+  position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.65);backdrop-filter:blur(4px);
+  display:none;align-items:center;justify-content:center;padding:14px;
+}
+.overlay.open{display:flex;animation:fadeIn .18s}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal{
+  background:var(--bg-2);border:1px solid var(--border);border-radius:20px;
+  width:100%;max-width:620px;max-height:92vh;overflow-y:auto;box-shadow:var(--shadow);
+  animation:popIn .24s cubic-bezier(.34,1.4,.64,1);
+}
+@keyframes popIn{from{opacity:0;transform:scale(.95) translateY(12px)}to{opacity:1;transform:none}}
+.modal.wide{max-width:860px}
+.modal-head{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:16px 20px;border-bottom:1px solid var(--border);
+  position:sticky;top:0;background:var(--bg-2);z-index:2;border-radius:20px 20px 0 0;
+}
+.modal-head h3{margin:0;font-size:16px;font-weight:800;letter-spacing:-.2px}
+.modal-body{padding:20px}
+.modal-foot{
+  padding:14px 20px;border-top:1px solid var(--border);
+  display:flex;gap:10px;position:sticky;bottom:0;background:var(--bg-2);border-radius:0 0 20px 20px;
+}
+.modal-foot .btn{flex:1}
+
+/* ============================================================
+   TOAST
+   ============================================================ */
+#toastWrap{
+  position:fixed;left:50%;transform:translateX(-50%);bottom:26px;z-index:500;
+  display:flex;flex-direction:column;gap:8px;align-items:center;
+  width:calc(100% - 32px);max-width:420px;pointer-events:none;
+}
+.toast{
+  background:var(--card);border:1px solid var(--border);border-left:4px solid var(--primary);
+  padding:11px 15px;border-radius:12px;font-size:13px;font-weight:600;
+  box-shadow:var(--shadow);animation:toastIn .25s cubic-bezier(.34,1.4,.64,1);width:100%;
+}
+.toast.success{border-left-color:var(--success)}
+.toast.error{border-left-color:var(--danger)}
+.toast.warn{border-left-color:var(--warn)}
+@keyframes toastIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+
+/* ============================================================
+   MISC
+   ============================================================ */
+.empty{text-align:center;padding:52px 20px;color:var(--muted)}
+.empty .ei{font-size:46px;margin-bottom:12px;opacity:.55}
+.empty h4{margin:0 0 6px;font-size:15px;color:var(--text);font-weight:700}
+.empty p{margin:0;font-size:13px}
+
+.skeleton{
+  background:linear-gradient(90deg,var(--card) 25%,var(--card-2) 50%,var(--card) 75%);
+  background-size:200% 100%;animation:shimmer 1.4s infinite;border-radius:12px;
+}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+.row-actions{display:flex;gap:5px;justify-content:flex-end;flex-wrap:wrap}
+.tag-list{display:flex;flex-wrap:wrap;gap:6px}
+.tag{background:var(--card-2);border:1px solid var(--border);color:var(--muted);
+  font-size:11px;font-weight:600;padding:3px 9px;border-radius:999px}
+
+.search-inline{position:relative;max-width:280px;flex:1;min-width:180px}
+.search-inline input{width:100%;height:38px;border-radius:10px;border:1px solid var(--border);
+  background:var(--bg-2);padding:0 12px 0 36px;outline:none;font-size:13px;color:var(--text)}
+.search-inline input:focus{border-color:var(--primary)}
+.search-inline svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);opacity:.55}
+
+.chips{display:flex;gap:7px;flex-wrap:wrap}
+.chip{padding:6px 13px;border-radius:999px;background:var(--card-2);border:1px solid var(--border);
+  font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;transition:.15s}
+.chip.active{background:var(--primary);border-color:var(--primary);color:#fff}
+
+pre.code-block{
+  background:var(--bg);border:1px solid var(--border);
+  border-radius:12px;padding:14px;overflow:auto;
+  font-size:11.5px;line-height:1.6;color:var(--text);
+  font-family:'Consolas','Monaco','Courier New',monospace;white-space:pre;
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media(min-width:900px){
+  .sidebar{transform:translateX(0)}
+  .main{margin-left:var(--sidebar-w)}
+  .topbar{left:var(--sidebar-w)}
+  .topbar .menu-toggle{display:none}
+  .sb-overlay{display:none !important}
+  .form-grid{grid-template-columns:1fr 1fr}
+  .form-row-2,.form-row-3{grid-template-columns:1fr 1fr}
+  .stats-grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr))}
+  .content{padding:22px 22px 60px}
+}
+@media(min-width:1200px){
+  .form-row-3{grid-template-columns:1fr 1fr 1fr}
+  .stats-grid{grid-template-columns:repeat(auto-fill,minmax(180px,1fr))}
+}
+@media(max-width:520px){
+  .view-head h2{font-size:17px}
+  .stat .sv{font-size:20px}
+  .form-row-2,.form-row-3{grid-template-columns:1fr}
+  .modal-body{padding:16px}
+  .modal-head{padding:14px 16px}
+  .modal-foot{padding:12px 16px}
+}
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     LOGIN GATE
+     ============================================================ -->
+<div id="loginGate">
+  <div class="card">
+    <div class="logo">⚡</div>
+    <h1>Admin Control Panel</h1>
+    <div class="sub">AppVerse — শুধুমাত্র অনুমোদিত অ্যাডমিনদের জন্য</div>
+
+    <div class="field">
+      <label>Admin Email</label>
+      <input id="adEmail" class="input" type="email" placeholder="plabon@gmail.com" autocomplete="username">
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input id="adPass" class="input" type="password" placeholder="••••••••" autocomplete="current-password">
+    </div>
+
+    <div id="adError" style="display:none;color:var(--danger);font-size:12.5px;margin-bottom:12px;
+      padding:10px 12px;background:rgba(239,68,68,.08);border-radius:10px;border:1px solid rgba(239,68,68,.2);line-height:1.6"></div>
+
+    <button class="btn btn-primary btn-block" id="adLoginBtn" onclick="adminLogin()">🔐 লগইন করুন</button>
+
+    <div class="dbg">
+      <b>Firebase:</b> <span id="dbgProject">…</span><br>
+      <b>Bootstrap Admin UID:</b> Ke5v3Mc9...Qh2<br>
+      <b>Connection:</b> <span id="dbgConn">checking…</span>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     APP
+     ============================================================ -->
+<div class="app" id="app">
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sb-brand">
+      <div class="logo" id="sbLogo">⚡</div>
+      <div style="min-width:0">
+        <h2 id="sbName">AppVerse</h2>
+        <p>Admin Panel</p>
+      </div>
+    </div>
+    <nav class="sb-nav" id="sbNav">
+      <button class="sb-item active" data-view="dashboard" onclick="av('dashboard')">
+        <span class="ic">📊</span> ড্যাশবোর্ড
+      </button>
+      <button class="sb-item" data-view="apps" onclick="av('apps')">
+        <span class="ic">📦</span> অ্যাপ ম্যানেজমেন্ট
+      </button>
+      <button class="sb-item" data-view="categories" onclick="av('categories')">
+        <span class="ic">📂</span> ক্যাটাগরি
+      </button>
+      <button class="sb-item" data-view="users" onclick="av('users')">
+        <span class="ic">👥</span> ইউজার
+      </button>
+      <button class="sb-item" data-view="notifications" onclick="av('notifications')">
+        <span class="ic">🔔</span> নোটিফিকেশন
+      </button>
+      <button class="sb-item" data-view="support" onclick="av('support')">
+        <span class="ic">📩</span> সাপোর্ট
+        <span class="badge" id="sbSupportBadge" style="display:none">0</span>
+      </button>
+      <button class="sb-item" data-view="reports" onclick="av('reports')">
+        <span class="ic">🚨</span> রিপোর্ট
+        <span class="badge" id="sbReportsBadge" style="display:none">0</span>
+      </button>
+      <button class="sb-item" data-view="downloads" onclick="av('downloads')">
+        <span class="ic">📥</span> ডাউনলোড লগ
+      </button>
+      <button class="sb-item" data-view="settings" onclick="av('settings')">
+        <span class="ic">⚙️</span> সেটিংস
+      </button>
+      <button class="sb-item" data-view="security" onclick="av('security')">
+        <span class="ic">🛡️</span> সিকিউরিটি / Rules
+      </button>
+    </nav>
+    <div class="sb-foot">
+      <div class="usr">
+        <div class="av" id="sbAvatar">A</div>
+        <div class="info">
+          <b id="sbAdminEmail">admin@…</b>
+          <span>Super Admin</span>
+        </div>
+      </div>
+      <button class="btn btn-ghost btn-sm btn-block" onclick="adminLogout()">🚪 লগআউট</button>
+    </div>
+  </aside>
+  <div class="sb-overlay" id="sbOverlay" onclick="toggleSidebar(false)"></div>
+
+  <div class="main">
+    <header class="topbar">
+      <button class="icon-btn menu-toggle" onclick="toggleSidebar()">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+      <h1 id="topTitle">ড্যাশবোর্ড</h1>
+      <div class="spacer"></div>
+      <span class="conn-status off" id="connBadge"><span class="dot"></span> Offline</span>
+      <button class="icon-btn" onclick="toggleTheme()" title="Theme">
+        <svg id="themeIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>
+      </button>
+      <a class="icon-btn" href="index.html" target="_blank" title="Open User Store">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6M10 14 21 3"/></svg>
+      </a>
+    </header>
+
+    <div class="content">
+
+      <!-- DASHBOARD -->
+      <section id="av-dashboard" class="av active">
+        <div class="view-head">
+          <div>
+            <h2>📊 ড্যাশবোর্ড</h2>
+            <p>স্টোরের সার্বিক অবস্থা এক নজরে</p>
+          </div>
+        </div>
+        <div class="stats-grid" id="statGrid"></div>
+
+        <div class="card">
+          <div class="card-head">
+            <h3>🕒 সাম্প্রতিক অ্যাপ</h3>
+            <button class="btn btn-ghost btn-sm" onclick="av('apps')">সব দেখুন →</button>
+          </div>
+          <div class="card-body p0"><div id="dashRecentApps"></div></div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <h3>👥 সাম্প্রতিক ইউজার</h3>
+            <button class="btn btn-ghost btn-sm" onclick="av('users')">সব দেখুন →</button>
+          </div>
+          <div class="card-body p0"><div id="dashRecentUsers"></div></div>
+        </div>
+
+        <div class="card">
+          <div class="card-head"><h3>📥 সাম্প্রতিক ডাউনলোড</h3></div>
+          <div class="card-body p0"><div id="dashRecentDownloads"></div></div>
+        </div>
+      </section>
+
+      <!-- APPS -->
+      <section id="av-apps" class="av">
+        <div class="view-head">
+          <div>
+            <h2>📦 অ্যাপ ম্যানেজমেন্ট</h2>
+            <p>অ্যাপ যোগ, সম্পাদনা, প্রকাশ/অপ্রকাশ করুন</p>
+          </div>
+          <button class="btn btn-primary" onclick="openAppForm()">+ নতুন অ্যাপ</button>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <div class="search-inline">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+              <input id="appSearch" placeholder="অ্যাপ খুঁজুন..." oninput="renderAppsTable()">
+            </div>
+            <div class="chips" id="appFilterChips">
+              <span class="chip active" data-f="all" onclick="setAppFilter('all',this)">সব</span>
+              <span class="chip" data-f="published" onclick="setAppFilter('published',this)">প্রকাশিত</span>
+              <span class="chip" data-f="draft" onclick="setAppFilter('draft',this)">ড্রাফট</span>
+              <span class="chip" data-f="featured" onclick="setAppFilter('featured',this)">ফিচার্ড</span>
+              <span class="chip" data-f="trending" onclick="setAppFilter('trending',this)">ট্রেন্ডিং</span>
+            </div>
+          </div>
+          <div class="card-body p0">
+            <div class="table-wrap"><div id="appsTable"></div></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- CATEGORIES -->
+      <section id="av-categories" class="av">
+        <div class="view-head">
+          <div>
+            <h2>📂 ক্যাটাগরি</h2>
+            <p>ক্যাটাগরি তৈরি ও পরিচালনা করুন</p>
+          </div>
+          <button class="btn btn-primary" onclick="openCategoryForm()">+ নতুন ক্যাটাগরি</button>
+        </div>
+        <div class="card">
+          <div class="card-body p0">
+            <div class="table-wrap"><div id="catsTable"></div></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- USERS -->
+      <section id="av-users" class="av">
+        <div class="view-head">
+          <div>
+            <h2>👥 ইউজার ম্যানেজমেন্ট</h2>
+            <p>ব্যবহারকারীদের দেখুন এবং পরিচালনা করুন</p>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head">
+            <div class="search-inline">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+              <input id="userSearch" placeholder="নাম বা ইমেইল..." oninput="renderUsersTable()">
+            </div>
+          </div>
+          <div class="card-body p0"><div class="table-wrap"><div id="usersTable"></div></div></div>
+        </div>
+      </section>
+
+      <!-- NOTIFICATIONS -->
+      <section id="av-notifications" class="av">
+        <div class="view-head">
+          <div>
+            <h2>🔔 নোটিফিকেশন</h2>
+            <p>ব্যবহারকারীদের কাছে ঘোষণা পাঠান</p>
+          </div>
+          <button class="btn btn-primary" onclick="openNotifForm()">+ নতুন নোটিফিকেশন</button>
+        </div>
+        <div class="card">
+          <div class="card-body p0"><div class="table-wrap"><div id="notifsTable"></div></div></div>
+        </div>
+      </section>
+
+      <!-- SUPPORT -->
+      <section id="av-support" class="av">
+        <div class="view-head">
+          <div>
+            <h2>📩 সাপোর্ট মেসেজ</h2>
+            <p>ব্যবহারকারীদের অনুরোধ ও সমস্যা</p>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head">
+            <div class="chips" id="supportChips">
+              <span class="chip active" data-f="all" onclick="setSupportFilter('all',this)">সব</span>
+              <span class="chip" data-f="unread" onclick="setSupportFilter('unread',this)">অপঠিত</span>
+              <span class="chip" data-f="read" onclick="setSupportFilter('read',this)">পঠিত</span>
+              <span class="chip" data-f="replied" onclick="setSupportFilter('replied',this)">উত্তর দেওয়া</span>
+            </div>
+          </div>
+          <div class="card-body p0"><div id="supportList"></div></div>
+        </div>
+      </section>
+
+      <!-- REPORTS -->
+      <section id="av-reports" class="av">
+        <div class="view-head">
+          <div>
+            <h2>🚨 অ্যাপ রিপোর্ট</h2>
+            <p>ব্যবহারকারীদের রিপোর্ট পর্যালোচনা করুন</p>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head">
+            <div class="chips" id="reportChips">
+              <span class="chip active" data-f="all" onclick="setReportFilter('all',this)">সব</span>
+              <span class="chip" data-f="pending" onclick="setReportFilter('pending',this)">অপেক্ষমাণ</span>
+              <span class="chip" data-f="reviewing" onclick="setReportFilter('reviewing',this)">পর্যালোচনায়</span>
+              <span class="chip" data-f="resolved" onclick="setReportFilter('resolved',this)">সমাধান</span>
+            </div>
+          </div>
+          <div class="card-body p0"><div id="reportsList"></div></div>
+        </div>
+      </section>
+
+      <!-- DOWNLOADS -->
+      <section id="av-downloads" class="av">
+        <div class="view-head">
+          <div>
+            <h2>📥 ডাউনলোড লগ</h2>
+            <p>সর্বশেষ ডাউনলোড ইভেন্ট</p>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="exportDownloadsCSV()">⬇ CSV এক্সপোর্ট</button>
+        </div>
+        <div class="card">
+          <div class="card-body p0"><div class="table-wrap"><div id="downloadsTable"></div></div></div>
+        </div>
+      </section>
+
+      <!-- SETTINGS -->
+      <section id="av-settings" class="av">
+        <div class="view-head">
+          <div>
+            <h2>⚙️ স্টোর সেটিংস</h2>
+            <p>ব্র্যান্ডিং, লিংক এবং মেইনটেন্যান্স মোড</p>
+          </div>
+          <button class="btn btn-primary" onclick="saveSettings()">💾 সংরক্ষণ করুন</button>
+        </div>
+        <div class="card">
+          <div class="card-body">
+            <div class="form-grid">
+              <div class="field">
+                <label>Store Name</label>
+                <input id="stName" class="input" placeholder="AppVerse">
+              </div>
+              <div class="field">
+                <label>Logo URL</label>
+                <input id="stLogo" class="input" placeholder="https://.../logo.png">
+              </div>
+            </div>
+            <div class="field">
+              <label>Store Description</label>
+              <textarea id="stDesc" class="input" placeholder="সংক্ষিপ্ত স্টোর বিবরণ..."></textarea>
+            </div>
+            <div class="field">
+              <label>Announcement Bar (একটি লাইন)</label>
+              <input id="stAnnounce" class="input" placeholder="📢 নতুন অ্যাপ আপডেট এসেছে!">
+            </div>
+            <div class="form-grid">
+              <div class="field">
+                <label>Support Email</label>
+                <input id="stEmail" class="input" type="email" placeholder="support@example.com">
+              </div>
+              <div class="field">
+                <label>Telegram URL</label>
+                <input id="stTelegram" class="input" placeholder="https://t.me/yourchannel">
+              </div>
+              <div class="field">
+                <label>Facebook URL</label>
+                <input id="stFacebook" class="input" placeholder="https://facebook.com/yourpage">
+              </div>
+              <div class="field">
+                <label>Privacy Policy URL</label>
+                <input id="stPrivacy" class="input" placeholder="https://.../privacy">
+              </div>
+              <div class="field">
+                <label>Terms URL</label>
+                <input id="stTerms" class="input" placeholder="https://.../terms">
+              </div>
+              <div class="field">
+                <label>About URL</label>
+                <input id="stAbout" class="input" placeholder="https://.../about">
+              </div>
+            </div>
+            <label class="check-row" style="max-width:380px">
+              <input type="checkbox" id="stMaintenance">
+              <span>🛠️ Maintenance Mode চালু করুন</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head"><h3>📤 ব্যাকআপ</h3></div>
+          <div class="card-body">
+            <p style="margin:0 0 12px;color:var(--muted);font-size:13px">
+              সমগ্র Realtime Database-এর JSON ব্যাকআপ ডাউনলোড করুন।
+            </p>
+            <button class="btn btn-ghost" onclick="exportBackup()">⬇ Full Backup (JSON)</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECURITY -->
+      <section id="av-security" class="av">
+        <div class="view-head">
+          <div>
+            <h2>🛡️ সিকিউরিটি / Admin Access</h2>
+            <p>Firebase UID-ভিত্তিক অ্যাডমিন ম্যানেজমেন্ট</p>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head"><h3>➕ নতুন অ্যাডমিন যোগ করুন</h3></div>
+          <div class="card-body">
+            <p style="color:var(--muted);font-size:13px;margin:0 0 14px">
+              যে ইউজারকে অ্যাডমিন বানাতে চান তার Firebase UID নিচে দিন।
+              এই UID অবশ্যই <code>admins/{UID}</code> নোডে থাকতে হবে।
+            </p>
+            <div class="field">
+              <label>Admin UID</label>
+              <input id="newAdminUid" class="input" placeholder="abc123xyz...">
+            </div>
+            <div class="field">
+              <label>Role</label>
+              <select id="newAdminRole" class="input">
+                <option value="admin">admin</option>
+                <option value="superadmin">superadmin</option>
+                <option value="moderator">moderator</option>
+              </select>
+            </div>
+            <button class="btn btn-primary" onclick="addAdmin()">➕ অ্যাডমিন যোগ করুন</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head"><h3>👑 বর্তমান অ্যাডমিন</h3></div>
+          <div class="card-body p0"><div class="table-wrap"><div id="adminsTable"></div></div></div>
+        </div>
+
+        <div class="card">
+          <div class="card-head"><h3>📋 Recommended Database Rules</h3></div>
+          <div class="card-body">
+            <p style="color:var(--muted);font-size:13px;margin:0 0 10px">
+              Firebase Console → Realtime Database → Rules-এ নিচের নিয়মগুলো পেস্ট করুন।
+            </p>
+            <pre class="code-block" id="rulesPreview"></pre>
+            <button class="btn btn-ghost btn-sm" style="margin-top:10px" onclick="copyRules()">📋 কপি করুন</button>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="modalOverlay">
+  <div class="modal" id="modalBox"></div>
+</div>
+
+<div class="overlay" id="confirmOverlay">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-head"><h3 id="cfTitle">নিশ্চিত করুন</h3></div>
+    <div class="modal-body">
+      <p id="cfMsg" style="margin:0;color:var(--muted);font-size:13.5px;line-height:1.7"></p>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="cfClose(false)">বাতিল</button>
+      <button class="btn btn-danger" id="cfOk">হ্যাঁ, নিশ্চিত</button>
+    </div>
+  </div>
+</div>
+
+<div id="toastWrap"></div>
+
+<!-- ============================================================
+     FIREBASE SDK
+     ============================================================ -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+
+<script>
+/* ================================================================
+   FIREBASE CONFIG (embedded)
+   ================================================================ */
+const firebaseConfig = {
+  apiKey: "AIzaSyB5J9J7QqV68cZ5NNOPwmwBl_gvv5LbdR4",
+  authDomain: "app-store-3e577.firebaseapp.com",
+  databaseURL: "https://app-store-3e577-default-rtdb.firebaseio.com",
+  projectId: "app-store-3e577",
+  storageBucket: "app-store-3e577.firebasestorage.app",
+  messagingSenderId: "419773838317",
+  appId: "1:419773838317:web:675844f7f50e14df232de4",
+  measurementId: "G-HBZTR4BSJP"
+};
+
+/* Bootstrap admins — এই UID গুলো /admins নোড ছাড়াও লগইন করতে পারবে */
+const BOOTSTRAP_ADMINS = [
+  "Ke5v3Mc9XadBKXlgiuxvBBHOqQh2"   // plabon@gmail.com
+];
+
+/* ================================================================
+   FIREBASE INIT (with safe guards)
+   ================================================================ */
+let db = null, auth = null;
+(function initFirebase(){
+  try {
+    if(typeof firebase === "undefined"){
+      throw new Error("Firebase SDK লোড হয়নি — ইন্টারনেট চেক করুন।");
+    }
+    if(!firebase.apps || !firebase.apps.length){
+      firebase.initializeApp(firebaseConfig);
+    }
+    db   = firebase.database();
+    auth = firebase.auth();
+
+    // Debug info on login gate
+    document.getElementById('dbgProject').textContent = firebaseConfig.projectId;
+
+    // Connection status
+    db.ref('.info/connected').on('value', snap => {
+      const online = !!snap.val();
+      const badge = document.getElementById('connBadge');
+      const dbg   = document.getElementById('dbgConn');
+      if(online){
+        badge.className = 'conn-status on';
+        badge.innerHTML = '<span class="dot"></span> Online';
+        if(dbg) dbg.textContent = '✅ connected';
+      } else {
+        badge.className = 'conn-status off';
+        badge.innerHTML = '<span class="dot"></span> Offline';
+        if(dbg) dbg.textContent = '⏳ connecting...';
+      }
+    });
+
+    console.log('[AppVerse Admin] Firebase initialized ✔', firebaseConfig.projectId);
+  } catch(e){
+    console.error('[AppVerse Admin] Firebase init failed:', e);
+    const err = document.getElementById('adError');
+    if(err){
+      err.style.display = 'block';
+      err.textContent = 'Firebase init ব্যর্থ: ' + (e.message || e);
+    }
+  }
+})();
+
+/* ================================================================
+   STATE
+   ================================================================ */
+const A = {
+  user: null,
+  isAdmin: false,
+  adminRole: 'admin',
+  apps: {}, cats: {}, users: {}, notifs: {},
+  messages: {}, reports: {}, downloads: {}, admins: {},
+  settings: {},
+  appFilter: 'all',
+  supportFilter: 'all',
+  reportFilter: 'all',
+  unsubs: []
+};
+
+/* ================================================================
+   HELPERS
+   ================================================================ */
+const $  = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+
+function esc(s){
+  return String(s == null ? '' : s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+function ini(n){
+  if(!n) return 'A';
+  return n.trim().split(/\s+/).slice(0,2).map(w=>w[0]||'').join('').toUpperCase() || 'A';
+}
+function fmtNum(n){
+  n = Number(n)||0;
+  if(n>=1e6) return (n/1e6).toFixed(1).replace(/\.0$/,'')+'M';
+  if(n>=1e3) return (n/1e3).toFixed(1).replace(/\.0$/,'')+'K';
+  return String(n);
+}
+function fmtDate(ts){
+  if(!ts) return '—';
+  const d = new Date(ts);
+  if(isNaN(d)) return '—';
+  return d.toLocaleString('bn-BD', {day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+}
+function relTime(ts){
+  if(!ts) return '—';
+  const diff = Date.now() - ts;
+  if(diff < 60000) return 'এইমাত্র';
+  const m = Math.floor(diff/60000);
+  if(m < 60) return m+' মি. আগে';
+  const h = Math.floor(diff/3600000);
+  if(h < 24) return h+' ঘ. আগে';
+  const day = Math.floor(diff/86400000);
+  if(day < 30) return day+' দিন আগে';
+  return fmtDate(ts);
+}
+function toast(msg, type){
+  const el = document.createElement('div');
+  el.className = 'toast ' + (type||'');
+  el.textContent = msg;
+  $('#toastWrap').appendChild(el);
+  setTimeout(()=>{
+    el.style.transition = 'opacity .25s,transform .25s';
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(10px)';
+    setTimeout(()=>el.remove(), 260);
+  }, 3000);
+}
+function fbErr(e){
+  if(!e) return 'অজানা সমস্যা';
+  const code = e.code || '';
+  const map = {
+    'auth/invalid-email':'ইমেইল ঠিকানাটি সঠিক নয়।',
+    'auth/user-disabled':'এই অ্যাকাউন্টটি ব্লক করা হয়েছে।',
+    'auth/user-not-found':'এই ইমেইলে কোনো অ্যাকাউন্ট নেই।',
+    'auth/wrong-password':'পাসওয়ার্ড ভুল হয়েছে।',
+    'auth/invalid-credential':'ইমেইল বা পাসওয়ার্ড ভুল।',
+    'auth/invalid-login-credentials':'ইমেইল বা পাসওয়ার্ড ভুল।',
+    'auth/email-already-in-use':'এই ইমেইল দিয়ে আগেই অ্যাকাউন্ট আছে।',
+    'auth/weak-password':'পাসওয়ার্ড খুব দুর্বল (কমপক্ষে ৬ অক্ষর)।',
+    'auth/too-many-requests':'অনেকবার চেষ্টা করা হয়েছে। কিছুক্ষণ পর আবার চেষ্টা করুন।',
+    'auth/network-request-failed':'নেটওয়ার্ক সমস্যা। ইন্টারনেট চেক করুন।',
+    'auth/operation-not-allowed':'Firebase Console-এ Email/Password লগইন চালু করুন।',
+    'PERMISSION_DENIED':'Permission নেই (Database Rules চেক করুন)।',
+    'permission-denied':'Permission নেই (Database Rules চেক করুন)।'
+  };
+  return map[code] || e.message || 'অজানা সমস্যা';
+}
+
+/* ================================================================
+   CONFIRM DIALOG
+   ================================================================ */
+let _cfResolve = null;
+function confirmDialog(title, msg){
+  $('#cfTitle').textContent = title || 'নিশ্চিত করুন';
+  $('#cfMsg').textContent = msg || '';
+  $('#confirmOverlay').classList.add('open');
+  return new Promise(res => { _cfResolve = res; });
+}
+function cfClose(v){
+  $('#confirmOverlay').classList.remove('open');
+  if(_cfResolve){ _cfResolve(v); _cfResolve = null; }
+}
+$('#cfOk').addEventListener('click', ()=>cfClose(true));
+
+/* ================================================================
+   MODAL
+   ================================================================ */
+function openModal(html, wide){
+  $('#modalBox').className = 'modal' + (wide?' wide':'');
+  $('#modalBox').innerHTML = html;
+  $('#modalOverlay').classList.add('open');
+}
+function closeModal(){
+  $('#modalOverlay').classList.remove('open');
+  $('#modalBox').innerHTML = '';
+}
+$('#modalOverlay').addEventListener('click', e => {
+  if(e.target.id === 'modalOverlay') closeModal();
+});
+
+/* ================================================================
+   THEME
+   ================================================================ */
+function applyTheme(t){
+  document.documentElement.setAttribute('data-theme', t);
+  try{ localStorage.setItem('av_admin_theme', t); }catch(e){}
+  $('#themeIcon').innerHTML = t === 'dark'
+    ? '<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/>'
+    : '<circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>';
+}
+function toggleTheme(){
+  const cur = document.documentElement.getAttribute('data-theme');
+  applyTheme(cur === 'dark' ? 'light' : 'dark');
+}
+(function(){
+  let t = 'dark';
+  try{ t = localStorage.getItem('av_admin_theme') || 'dark'; }catch(e){}
+  applyTheme(t);
+})();
+
+/* ================================================================
+   SIDEBAR
+   ================================================================ */
+function toggleSidebar(force){
+  const sb = $('#sidebar');
+  const ov = $('#sbOverlay');
+  const open = typeof force === 'boolean' ? force : !sb.classList.contains('open');
+  sb.classList.toggle('open', open);
+  ov.classList.toggle('show', open);
+}
+$('#sbOverlay').addEventListener('click', ()=>toggleSidebar(false));
+
+/* ================================================================
+   VIEW ROUTER
+   ================================================================ */
+const VIEW_TITLES = {
+  dashboard:'ড্যাশবোর্ড', apps:'অ্যাপ ম্যানেজমেন্ট', categories:'ক্যাটাগরি',
+  users:'ইউজার', notifications:'নোটিফিকেশন', support:'সাপোর্ট',
+  reports:'রিপোর্ট', downloads:'ডাউনলোড লগ', settings:'সেটিংস', security:'সিকিউরিটি'
+};
+function av(view){
+  $$('.av').forEach(s => s.classList.remove('active'));
+  const el = document.getElementById('av-' + view);
+  if(el) el.classList.add('active');
+  $$('.sb-item').forEach(b => b.classList.toggle('active', b.dataset.view === view));
+  $('#topTitle').textContent = VIEW_TITLES[view] || view;
+  if(window.innerWidth < 900) toggleSidebar(false);
+
+  try {
+    if(view === 'dashboard')     renderDashboard();
+    if(view === 'apps')          renderAppsTable();
+    if(view === 'categories')    renderCatsTable();
+    if(view === 'users')         renderUsersTable();
+    if(view === 'notifications') renderNotifsTable();
+    if(view === 'support')       renderSupportList();
+    if(view === 'reports')       renderReportsList();
+    if(view === 'downloads')     renderDownloadsTable();
+    if(view === 'settings')      loadSettingsForm();
+    if(view === 'security')      renderSecurity();
+  } catch(e){
+    console.error('[av] render error:', e);
+    toast('Render error: ' + e.message, 'error');
+  }
+}
+window.av = av;
+
+/* ================================================================
+   LOGIN / AUTH
+   ================================================================ */
+async function adminLogin(){
+  const email = ($('#adEmail').value || '').trim();
+  const pass  = $('#adPass').value || '';
+  const errEl = $('#adError');
+  const btn   = $('#adLoginBtn');
+
+  errEl.style.display = 'none';
+
+  if(!db || !auth){
+    errEl.textContent = 'Firebase initialize হয়নি। পেজ রিফ্রেশ করুন।';
+    errEl.style.display = 'block';
+    return;
+  }
+  if(!email || !pass){
+    errEl.textContent = 'ইমেইল ও পাসওয়ার্ড দুটোই দিন।';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = '⏳ অপেক্ষা করুন...';
+
+  try{
+    await auth.signInWithEmailAndPassword(email, pass);
+    // success → onAuthStateChanged handles the rest
+  }catch(e){
+    console.error('[login] failed:', e);
+    errEl.textContent = fbErr(e);
+    errEl.style.display = 'block';
+  }finally{
+    btn.disabled = false;
+    btn.textContent = '🔐 লগইন করুন';
+  }
+}
+window.adminLogin = adminLogin;
+
+async function adminLogout(){
+  const ok = await confirmDialog('লগআউট', 'আপনি কি লগআউট করতে চান?');
+  if(!ok) return;
+  try{
+    sessionStorage.removeItem('av_admin_bypass');
+    await auth.signOut();
+    location.reload();
+  }catch(e){
+    toast('লগআউট ব্যর্থ: ' + e.message, 'error');
+  }
+}
+window.adminLogout = adminLogout;
+
+function showGate(msg){
+  $('#app').classList.remove('show');
+  $('#loginGate').style.display = 'grid';
+  if(msg){
+    const e = $('#adError');
+    e.textContent = msg;
+    e.style.display = 'block';
+  }
+  A.unsubs.forEach(u => { try{ u(); }catch(e){} });
+  A.unsubs = [];
+}
+
+/* ================================================================
+   AUTH STATE — robust admin verification
+   ================================================================ */
+auth.onAuthStateChanged(async user => {
+  A.user = user || null;
+
+  if(!user){
+    showGate();
+    return;
+  }
+
+  console.log('[Admin] Logged in:', user.email, '| UID:', user.uid);
+
+  const errEl = $('#adError');
+  errEl.style.display = 'none';
+
+  const isBootstrap = BOOTSTRAP_ADMINS.includes(user.uid);
+  let adm = null;
+
+  // 1) Try reading /admins/<uid>
+  try {
+    const snap = await db.ref('admins/' + user.uid).once('value');
+    adm = snap.val();
+    console.log('[Admin] /admins/' + user.uid + ' =', adm);
+  } catch(e){
+    console.warn('[Admin] read /admins failed:', e.code || e.message);
+    // If rules deny but bootstrap admin → allow
+    if(!isBootstrap){
+      showGate('❌ Permission denied। Rules ঠিক নেই অথবা /admins নোড তৈরি হয়নি।');
+      await auth.signOut().catch(()=>{});
+      return;
+    }
+  }
+
+  // 2) Bootstrap fallback — allow + auto-create admin record
+  if(!adm && isBootstrap){
+    console.log('[Admin] Bootstrap access for UID:', user.uid);
+    adm = { role: 'superadmin', active: true, email: user.email || '' };
+    try {
+      await db.ref('admins/' + user.uid).update({
+        role: 'superadmin',
+        active: true,
+        email: user.email || '',
+        addedAt: Date.now()
+      });
+      console.log('[Admin] Auto-created /admins record ✅');
+    } catch(e){
+      console.warn('[Admin] could not auto-write /admins (rules?):', e.code || e.message);
+      // Still allow login — the bootstrap grant works in-memory
+    }
+  }
+
+  // 3) No admin record + not bootstrap
+  if(!adm){
+    showGate('❌ এই UID অ্যাডমিন হিসেবে নিবন্ধিত নয়।\nUID: ' + user.uid);
+    await auth.signOut().catch(()=>{});
+    return;
+  }
+
+  if(adm.active === false){
+    showGate('❌ আপনার অ্যাডমিন অ্যাকাউন্ট নিষ্ক্রিয় করা হয়েছে।');
+    await auth.signOut().catch(()=>{});
+    return;
+  }
+
+  // 4) Success
+  A.isAdmin = true;
+  A.adminRole = adm.role || 'admin';
+  sessionStorage.setItem('av_admin_bypass','1');
+
+  $('#sbAdminEmail').textContent = user.email || 'admin';
+  $('#sbAvatar').textContent = ini(user.email || 'A');
+  $('#loginGate').style.display = 'none';
+  $('#app').classList.add('show');
+
+  // Attach listeners and render dashboard
+  attachListeners();
+  av('dashboard');
+});
+
+/* ================================================================
+   LISTENERS
+   ================================================================ */
+function attachListeners(){
+  if(!db){ console.error('DB not initialized'); return; }
+  if(A.unsubs.length) return;
+
+  const bind = (path, key) => {
+    const ref = db.ref(path);
+    const cb = snap => {
+      A[key] = snap.val() || {};
+      refreshCurrentView();
+    };
+    const er = err => {
+      console.warn('[' + path + '] listen error:', err && (err.code||err.message));
+      A[key] = A[key] || {};
+      updateSideBadges();
+    };
+    ref.on('value', cb, er);
+    A.unsubs.push(() => ref.off('value', cb));
+  };
+
+  bind('apps','apps');
+  bind('categories','cats');
+  bind('users','users');
+  bind('notifications','notifs');
+  bind('supportMessages','messages');
+  bind('reports','reports');
+  bind('settings/store','settings');
+  bind('admins','admins');
+
+  // Downloads (ordered, limited)
+  const dRef = db.ref('downloads').orderByChild('ts').limitToLast(500);
+  const dCb = snap => {
+    const v = snap.val() || {};
+    A.downloads = Object.entries(v)
+      .map(([id,d])=>({id, ...d}))
+      .sort((a,b)=>(b.ts||0)-(a.ts||0));
+    refreshCurrentView();
+  };
+  const dEr = err => console.warn('[downloads] listen error:', err && (err.code||err.message));
+  dRef.on('value', dCb, dEr);
+  A.unsubs.push(() => dRef.off('value', dCb));
+
+  setTimeout(()=>{ applyBranding(); updateSideBadges(); }, 500);
+}
+
+function refreshCurrentView(){
+  const active = $$('.av.active')[0];
+  if(!active) return;
+  const id = active.id.replace('av-','');
+  try {
+    if(id==='dashboard')     renderDashboard();
+    if(id==='apps')          renderAppsTable();
+    if(id==='categories')    renderCatsTable();
+    if(id==='users')         renderUsersTable();
+    if(id==='notifications') renderNotifsTable();
+    if(id==='support')       renderSupportList();
+    if(id==='reports')       renderReportsList();
+    if(id==='downloads')     renderDownloadsTable();
+    if(id==='security')      renderSecurity();
+  } catch(e){
+    console.warn('refresh error:', e);
+  }
+  updateSideBadges();
+  applyBranding();
+}
+
+function applyBranding(){
+  const s = A.settings || {};
+  if(s.storeName){
+    $('#sbName').textContent = s.storeName;
+    document.title = 'Admin — ' + s.storeName;
+  }
+  if(s.logoUrl){
+    $('#sbLogo').innerHTML = `<img src="${esc(s.logoUrl)}" style="width:100%;height:100%;object-fit:cover;border-radius:10px" onerror="this.parentNode.textContent='⚡'">`;
+  } else {
+    $('#sbLogo').textContent = '⚡';
+  }
+}
+
+function updateSideBadges(){
+  const unreadSupport = Object.values(A.messages||{}).filter(m => (m.status||'unread')==='unread').length;
+  const pendingReports = Object.values(A.reports||{}).filter(r => (r.status||'pending')==='pending').length;
+  const sB = $('#sbSupportBadge');
+  const rB = $('#sbReportsBadge');
+  if(sB){
+    if(unreadSupport){ sB.textContent = unreadSupport; sB.style.display = 'inline-block'; }
+    else sB.style.display = 'none';
+  }
+  if(rB){
+    if(pendingReports){ rB.textContent = pendingReports; rB.style.display = 'inline-block'; }
+    else rB.style.display = 'none';
+  }
+}
+
+/* ================================================================
+   DASHBOARD
+   ================================================================ */
+function renderDashboard(){
+  const appsArr = Object.values(A.apps||{});
+  const usersArr = Object.values(A.users||{});
+  const totalDownloads = appsArr.reduce((a,b)=>a+(Number(b.downloads)||0),0);
+  const totalViews = appsArr.reduce((a,b)=>a+(Number(b.views)||0),0);
+  const unreadMsgs = Object.values(A.messages||{}).filter(m=>(m.status||'unread')==='unread').length;
+  const pendingRep = Object.values(A.reports||{}).filter(r=>(r.status||'pending')==='pending').length;
+
+  const stats = [
+    { ic:'📦', sv: appsArr.length, sl:'Total Apps' },
+    { ic:'👥', sv: usersArr.length, sl:'Total Users' },
+    { ic:'📂', sv: Object.keys(A.cats||{}).length, sl:'Categories' },
+    { ic:'📥', sv: fmtNum(totalDownloads), sl:'Downloads' },
+    { ic:'👁️', sv: fmtNum(totalViews), sl:'Total Views' },
+    { ic:'🔔', sv: Object.keys(A.notifs||{}).length, sl:'Notifications' },
+    { ic:'📩', sv: unreadMsgs, sl:'Unread Msgs' },
+    { ic:'🚨', sv: pendingRep, sl:'Pending Reports' }
+  ];
+  $('#statGrid').innerHTML = stats.map(s => `
+    <div class="stat">
+      <div class="si">${s.ic}</div>
+      <div class="sv">${s.sv}</div>
+      <div class="sl">${s.sl}</div>
+    </div>`).join('');
+
+  // Recent Apps
+  const recentApps = Object.entries(A.apps||{})
+    .map(([id,a])=>({id, ...a}))
+    .sort((a,b)=>(b.createdAt||0)-(a.createdAt||0))
+    .slice(0,6);
+  $('#dashRecentApps').innerHTML = recentApps.length
+    ? `<div class="table-wrap"><table><tbody>
+        ${recentApps.map(a => `
+          <tr>
+            <td>
+              <div class="tbl-app">
+                <div class="ic">${a.icon
+                  ? `<img src="${esc(a.icon)}" alt="" loading="lazy" onerror="this.parentNode.innerHTML='<div class=\\'ph\\'>${esc((a.name||'A')[0].toUpperCase())}</div>'">`
+                  : `<div class="ph">${esc((a.name||'A')[0].toUpperCase())}</div>`}</div>
+                <div class="tx"><b>${esc(a.name||'Untitled')}</b><span>${esc(a.developer||'—')}</span></div>
+              </div>
+            </td>
+            <td>${esc(a.category||'—')}</td>
+            <td style="text-align:right">${fmtNum(a.downloads||0)}</td>
+            <td style="text-align:right"><span class="pill ${a.published!==false?'on':'off'}">${a.published!==false?'Live':'Draft'}</span></td>
+          </tr>`).join('')}
+      </tbody></table></div>`
+    : `<div class="empty"><div class="ei">📦</div><h4>কোনো অ্যাপ নেই</h4></div>`;
+
+  // Recent Users
+  const recentUsers = Object.entries(A.users||{})
+    .map(([uid,u])=>({uid, ...u}))
+    .sort((a,b)=>(b.createdAt||b.lastActive||0)-(a.createdAt||a.lastActive||0))
+    .slice(0,6);
+  $('#dashRecentUsers').innerHTML = recentUsers.length
+    ? `<div class="table-wrap"><table><tbody>
+        ${recentUsers.map(u => `
+          <tr>
+            <td>
+              <div class="tbl-app">
+                <div class="ic"><div class="ph">${esc(ini(u.name||u.email))}</div></div>
+                <div class="tx"><b>${esc(u.name||'Unnamed')}</b><span>${esc(u.email||'—')}</span></div>
+              </div>
+            </td>
+            <td style="text-align:right;color:var(--muted)">${relTime(u.createdAt||u.lastActive)}</td>
+          </tr>`).join('')}
+      </tbody></table></div>`
+    : `<div class="empty"><div class="ei">👥</div><h4>কোনো ইউজার নেই</h4></div>`;
+
+  // Recent Downloads
+  const recentDl = (A.downloads||[]).slice(0,8);
+  $('#dashRecentDownloads').innerHTML = recentDl.length
+    ? `<div class="table-wrap"><table><tbody>
+        ${recentDl.map(d => `
+          <tr>
+            <td>
+              <div class="tbl-app">
+                <div class="ic">${d.appIcon
+                  ? `<img src="${esc(d.appIcon)}" alt="" loading="lazy">`
+                  : `<div class="ph">${esc((d.appName||'A')[0].toUpperCase())}</div>`}</div>
+                <div class="tx"><b>${esc(d.appName||'—')}</b><span>${esc(d.userEmail||'guest')}</span></div>
+              </div>
+            </td>
+            <td style="text-align:right;color:var(--muted)">${relTime(d.ts)}</td>
+          </tr>`).join('')}
+      </tbody></table></div>`
+    : `<div class="empty"><div class="ei">📥</div><h4>কোনো ডাউনলোড নেই</h4></div>`;
+}
+
+/* ================================================================
+   APPS MANAGEMENT
+   ================================================================ */
+function setAppFilter(f, el){
+  A.appFilter = f;
+  $$('#appFilterChips .chip').forEach(c=>c.classList.remove('active'));
+  if(el) el.classList.add('active');
+  renderAppsTable();
+}
+window.setAppFilter = setAppFilter;
+
+function renderAppsTable(){
+  const q = ($('#appSearch')?.value || '').toLowerCase().trim();
+  let list = Object.entries(A.apps||{}).map(([id,a])=>({id, ...a}));
+  if(A.appFilter === 'published') list = list.filter(a => a.published !== false);
+  if(A.appFilter === 'draft')     list = list.filter(a => a.published === false);
+  if(A.appFilter === 'featured')  list = list.filter(a => a.featured);
+  if(A.appFilter === 'trending')  list = list.filter(a => a.trending);
+  if(q) list = list.filter(a => [
+    a.name, a.developer, a.category, a.packageName, a.tags
+  ].join(' ').toLowerCase().includes(q));
+  list.sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+
+  const el = $('#appsTable');
+  if(!list.length){
+    el.innerHTML = `<div class="empty"><div class="ei">📦</div><h4>কোনো অ্যাপ পাওয়া যায়নি</h4><p>"+ নতুন অ্যাপ" দিয়ে শুরু করুন।</p></div>`;
+    return;
+  }
+  el.innerHTML = `<table>
+    <thead><tr>
+      <th>অ্যাপ</th><th>ক্যাটাগরি</th><th>রেটিং</th><th>ডাউনলোড</th>
+      <th>স্ট্যাটাস</th><th style="text-align:right">অ্যাকশন</th>
+    </tr></thead>
+    <tbody>
+      ${list.map(a => `
+        <tr>
+          <td>
+            <div class="tbl-app">
+              <div class="ic">${a.icon
+                ? `<img src="${esc(a.icon)}" alt="" loading="lazy" onerror="this.parentNode.innerHTML='<div class=\\'ph\\'>${esc((a.name||'A')[0].toUpperCase())}</div>'">`
+                : `<div class="ph">${esc((a.name||'A')[0].toUpperCase())}</div>`}</div>
+              <div class="tx">
+                <b>${esc(a.name||'Untitled')}</b>
+                <span>${esc(a.packageName||a.developer||'—')}</span>
+              </div>
+            </div>
+          </td>
+          <td>${esc(a.category||'—')}</td>
+          <td>★ ${(Number(a.rating)||0).toFixed(1)}</td>
+          <td>${fmtNum(a.downloads||0)}</td>
+          <td>
+            <span class="pill ${a.published!==false?'on':'off'}">${a.published!==false?'Live':'Draft'}</span>
+            ${a.featured?'<span class="pill info" style="margin-left:4px">★</span>':''}
+            ${a.trending?'<span class="pill warn" style="margin-left:4px">🔥</span>':''}
+          </td>
+          <td>
+            <div class="row-actions">
+              <button class="btn btn-ghost btn-xs" onclick="openAppForm('${esc(a.id)}')" title="Edit">✏️</button>
+              <button class="btn btn-ghost btn-xs" onclick="toggleAppPublish('${esc(a.id)}')" title="Publish/Unpublish">${a.published!==false?'🚫':'✅'}</button>
+              <button class="btn btn-ghost btn-xs" onclick="toggleAppFeatured('${esc(a.id)}')" title="Featured">★</button>
+              <button class="btn btn-ghost btn-xs" onclick="toggleAppTrending('${esc(a.id)}')" title="Trending">🔥</button>
+              <button class="btn btn-danger btn-xs" onclick="deleteApp('${esc(a.id)}')" title="Delete">🗑️</button>
+            </div>
+          </td>
+        </tr>`).join('')}
+    </tbody>
+  </table>`;
+}
+window.renderAppsTable = renderAppsTable;
+
+function openAppForm(id){
+  const a = id ? (A.apps[id]||{}) : {};
+  const cats = Object.entries(A.cats||{}).map(([cid,c])=>({id:cid, ...c}));
+  const catOpts = cats.map(c => `<option value="${esc(c.name)}" ${a.category===c.name?'selected':''}>${esc(c.name)}</option>`).join('');
+
+  openModal(`
+    <div class="modal-head">
+      <h3>${id?'✏️ অ্যাপ এডিট':'➕ নতুন অ্যাপ'}</h3>
+      <button class="icon-btn" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row-2">
+        <div class="field"><label>App Name *</label><input id="fName" class="input" value="${esc(a.name||'')}" placeholder="App name"></div>
+        <div class="field"><label>Developer</label><input id="fDev" class="input" value="${esc(a.developer||'')}" placeholder="Developer name"></div>
+      </div>
+      <div class="form-row-2">
+        <div class="field"><label>Package Name</label><input id="fPkg" class="input" value="${esc(a.packageName||'')}" placeholder="com.example.app"></div>
+        <div class="field"><label>Category</label>
+          <select id="fCat" class="input">
+            <option value="">— Select —</option>
+            ${catOpts}
+          </select>
+        </div>
+      </div>
+      <div class="field"><label>Short Description</label><input id="fShort" class="input" value="${esc(a.shortDesc||'')}" placeholder="এক লাইনে সংক্ষিপ্ত বিবরণ"></div>
+      <div class="field"><label>Full Description</label><textarea id="fDesc" class="input" placeholder="বিস্তারিত বিবরণ...">${esc(a.description||'')}</textarea></div>
+
+      <div class="form-row-2">
+        <div class="field"><label>Icon URL</label><input id="fIcon" class="input" value="${esc(a.icon||'')}" placeholder="https://.../icon.png"></div>
+        <div class="field"><label>Rating (0–5)</label><input id="fRating" class="input" type="number" step="0.1" min="0" max="5" value="${a.rating!=null?esc(a.rating):''}" placeholder="4.5"></div>
+      </div>
+      <div class="field"><label>Screenshot URLs (প্রতি লাইনে একটি)</label><textarea id="fShots" class="input" placeholder="https://.../shot1.jpg&#10;https://.../shot2.jpg">${esc(Array.isArray(a.screenshots)?a.screenshots.join('\n'):(a.screenshots||''))}</textarea></div>
+
+      <div class="form-row-3">
+        <div class="field"><label>Version</label><input id="fVer" class="input" value="${esc(a.version||'')}" placeholder="1.0.0"></div>
+        <div class="field"><label>Size</label><input id="fSize" class="input" value="${esc(a.size||'')}" placeholder="24 MB"></div>
+        <div class="field"><label>Android Req.</label><input id="fAnd" class="input" value="${esc(a.android||'')}" placeholder="Android 8.0+"></div>
+      </div>
+
+      <div class="field"><label>What's New</label><textarea id="fWhatsNew" class="input" placeholder="নতুন সংস্করণে কী পরিবর্তন...">${esc(a.whatsNew||'')}</textarea></div>
+      <div class="field"><label>Features (প্রতি লাইনে একটি)</label><textarea id="fFeat" class="input" placeholder="Feature 1&#10;Feature 2">${esc(Array.isArray(a.features)?a.features.join('\n'):(a.features||''))}</textarea></div>
+      <div class="field"><label>Tags (কমা দিয়ে আলাদা)</label><input id="fTags" class="input" value="${esc(Array.isArray(a.tags)?a.tags.join(', '):(a.tags||''))}" placeholder="game, action, 3d"></div>
+
+      <div class="field" style="border:1px solid var(--primary);border-radius:12px;padding:12px;background:rgba(79,124,255,.05)">
+        <label style="color:var(--primary)">🔗 Download Page URL * (External)</label>
+        <input id="fDownloadUrl" class="input" value="${esc(a.downloadUrl||a.downloadPageUrl||'')}" placeholder="https://example.com/download/app">
+        <div style="font-size:11.5px;color:var(--muted);margin-top:8px">
+          APK এই স্টোরে হোস্ট করা হবে না। ইউজার এই লিংকে রিডাইরেক্ট হবে।
+        </div>
+      </div>
+
+      <div class="form-row-3" style="margin-top:6px">
+        <label class="check-row"><input type="checkbox" id="fPub" ${a.published!==false?'checked':''}> Published</label>
+        <label class="check-row"><input type="checkbox" id="fFeatd" ${a.featured?'checked':''}> Featured</label>
+        <label class="check-row"><input type="checkbox" id="fTrend" ${a.trending?'checked':''}> Trending</label>
+      </div>
+
+      <div id="formErr" style="display:none;color:var(--danger);font-size:12.5px;margin-top:10px;padding:10px;background:rgba(239,68,68,.08);border-radius:10px"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal()">বাতিল</button>
+      <button class="btn btn-primary" onclick="saveApp(${id?`'${esc(id)}'`:'null'})">💾 সংরক্ষণ করুন</button>
+    </div>
+  `, true);
+}
+window.openAppForm = openAppForm;
+
+async function saveApp(id){
+  const errEl = $('#formErr');
+  const name = $('#fName').value.trim();
+  const downloadUrl = $('#fDownloadUrl').value.trim();
+
+  errEl.style.display = 'none';
+  if(name.length < 2){ errEl.textContent='অ্যাপের নাম দিন।'; errEl.style.display='block'; return; }
+  if(!/^https?:\/\//i.test(downloadUrl)){ errEl.textContent='সঠিক Download Page URL দিন (https:// দিয়ে শুরু)।'; errEl.style.display='block'; return; }
+
+  const shots = $('#fShots').value.split('\n').map(s=>s.trim()).filter(Boolean);
+  const feats = $('#fFeat').value.split('\n').map(s=>s.trim()).filter(Boolean);
+  const tags  = $('#fTags').value.split(',').map(s=>s.trim()).filter(Boolean);
+
+  const data = {
+    name,
+    developer: $('#fDev').value.trim(),
+    packageName: $('#fPkg').value.trim(),
+    category: $('#fCat').value,
+    shortDesc: $('#fShort').value.trim(),
+    description: $('#fDesc').value.trim(),
+    icon: $('#fIcon').value.trim(),
+    screenshots: shots,
+    rating: parseFloat($('#fRating').value) || 0,
+    version: $('#fVer').value.trim(),
+    size: $('#fSize').value.trim(),
+    android: $('#fAnd').value.trim(),
+    whatsNew: $('#fWhatsNew').value.trim(),
+    features: feats,
+    tags: tags,
+    downloadUrl,
+    published: $('#fPub').checked,
+    featured: $('#fFeatd').checked,
+    trending: $('#fTrend').checked,
+    updatedAt: Date.now()
+  };
+
+  try{
+    if(id){
+      await db.ref('apps/' + id).update(data);
+      toast('অ্যাপ আপডেট হয়েছে ✅','success');
+    } else {
+      data.createdAt = Date.now();
+      data.downloads = 0;
+      data.views = 0;
+      await db.ref('apps').push(data);
+      toast('নতুন অ্যাপ যোগ করা হয়েছে ✅','success');
+    }
+    closeModal();
+  }catch(e){
+    console.error(e);
+    errEl.textContent = 'সংরক্ষণ ব্যর্থ: ' + fbErr(e);
+    errEl.style.display = 'block';
+  }
+}
+window.saveApp = saveApp;
+
+async function toggleAppPublish(id){
+  const a = A.apps[id]; if(!a) return;
+  const next = a.published === false;
+  try{
+    await db.ref('apps/' + id + '/published').set(next);
+    toast(next?'প্রকাশিত হয়েছে ✅':'অপ্রকাশিত হয়েছে','success');
+  }catch(e){ toast('ব্যর্থ: '+fbErr(e),'error'); }
+}
+window.toggleAppPublish = toggleAppPublish;
+
+async function toggleAppFeatured(id){
+  const a = A.apps[id]; if(!a) return;
+  try{
+    await db.ref('apps/' + id + '/featured').set(!a.featured);
+    toast(!a.featured?'Featured চালু ★':'Featured বন্ধ','success');
+  }catch(e){ toast('ব্যর্থ: '+fbErr(e),'error'); }
+}
+window.toggleAppFeatured = toggleAppFeatured;
+
+async function toggleAppTrending(id){
+  const a = A.apps[id]; if(!a) return;
+  try{
+    await db.ref('apps/' + id + '/trending').set(!a.trending);
+    toast(!a.trending?'Trending চালু 🔥':'Trending বন্ধ','success');
+  }catch(e){ toast('ব্যর্থ: '+fbErr(e),'error'); }
+}
+window.toggleAppTrending = toggleAppTrending;
+
+async function deleteApp(id){
+  const a = A.apps[id]; if(!a) return;
+  const ok = await confirmDialog('অ্যাপ মুছুন', `"${a.name||'এই অ্যাপ'}" স্থায়ীভাবে মুছে যাবে। আপনি কি নিশ্চিত?`);
+  if(!ok) return;
+  try{
+    await db.ref('apps/' + id).remove();
+    toast('অ্যাপ মুছে ফেলা হয়েছে','success');
+  }catch(e){ toast('ব্যর্থ: '+fbErr(e),'error'); }
+}
+window.deleteApp = deleteApp;
+
+/* ================================================================
+   CATEGORIES
+   ================================================================ */
+function renderCatsTable(){
+  const list = Object.entries(A.cats||{}).map(([id,c])=>({id, ...c}))
+    .sort((a,b)=>(a.order||0)-(b.order||0));
+  const el = $('#catsTable');
+  if(!list.length){
+    el.innerHTML = `<div class="empty"><div class="ei">📂</div><h4>কোনো ক্যাটাগরি নেই</h4><p>"+ নতুন ক্যাটাগরি" দিয়ে শুরু করুন।</p></div>`;
+    return;
+  }
+  const appsArr = Object.values(A.apps||{});
+  el.innerHTML = `<table>
+    <thead><tr><th>আইকন</th><th>নাম</th><th>বর্ণনা</th><th>অ্যাপ</th><th>ক্রম</th><th style="text-align:right">অ্যাকশন</th></tr></thead>
+    <tbody>
+      ${list.map(c => {
+        const count = appsArr.filter(a => (a.category||'')===c.name).length;
+        return `
+          <tr>
+            <td style="font-size:22px">${esc(c.icon||'📦')}</td>
+            <td><b>${esc(c.name||'—')}</b></td>
+            <td style="color:var(--muted);max-width:280px">${esc(c.description||'—')}</td>
+            <td>${count}</td>
+            <td>${c.order||0}</td>
+            <td>
+              <div class="row-actions">
+                <button class="btn btn-ghost btn-xs" onclick="openCategoryForm('${esc(c.id)}')">✏️</button>
+                <button class="btn btn-danger btn-xs" onclick="deleteCategory('${esc(c.id)}')">🗑️</button>
+              </div>
+            </td>
+          </tr>`;
+      }).join('')}
+    </tbody>
+  </table>`;
+}
+
+function openCategoryForm(id){
+  const c = id ? (A.cats[id]||{}) : {};
+  openModal(`
+    <div class="modal-head">
+      <h3>${id?'✏️ ক্যাটাগরি এডিট':'➕ নতুন ক্যাটাগরি'}</h3>
+      <button class="icon-btn" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row-2">
+        <div class="field"><label>Category Name *</label><input id="cName" class="input" value="${esc(c.name||'')}" placeholder="Games"></div>
+        <div class="field"><label>Icon (emoji)</label><input id="cIcon" class="input" value="${esc(c.icon||'🎮')}" placeholder="🎮"></div>
+      </div>
+      <div class="field"><label>Description</label><textarea id="cDesc" class="input" placeholder="সংক্ষিপ্ত বর্ণনা...">${esc(c.description||'')}</textarea></div>
+      <div class="field"><label>Order (small = first)</label><input id="cOrder" class="input" type="number" value="${c.order||0}"></div>
+      <div id="cErr" style="display:none;color:var(--danger);font-size:12.5px;margin-top:8px"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal()">বাতিল</button>
+      <button class="btn btn-primary" onclick="saveCategory(${id?`'${esc(id)}'`:'null'})">💾 সংরক্ষণ</button>
+    </div>
+  `);
+}
+window.openCategoryForm = openCategoryForm;
+
+async function saveCategory(id){
+  const name = $('#cName').value.trim();
+  const errEl = $('#cErr');
+  if(name.length < 2){ errEl.textContent='নাম কমপক্ষে ২ অক্ষরের হতে হবে।'; errEl.style.display='block'; return; }
+  const data = {
+    name,
+    icon: $('#cIcon').value.trim() || '📦',
+    description: $('#cDesc').value.trim(),
+    order: parseInt($('#cOrder').value)||0,
+    updatedAt: Date.now()
+  };
+  try{
+    if(id){
+      await db.ref('categories/' + id).update(data);
+      toast('ক্যাটাগরি আপডেট ✅','success');
+    } else {
+      data.createdAt = Date.now();
+      await db.ref('categories').push(data);
+      toast('নতুন ক্যাটাগরি যোগ ✅','success');
+    }
+    closeModal();
+  }catch(e){
+    errEl.textContent = 'ব্যর্থ: '+fbErr(e);
+    errEl.style.display = 'block';
+  }
+}
+window.saveCategory = saveCategory;
+
+async function deleteCategory(id){
+  const c = A.cats[id]; if(!c) return;
+  const ok = await confirmDialog('ক্যাটাগরি মুছুন', `"${c.name}" মুছে ফেলা হবে?`);
+  if(!ok) return;
+  try{
+    await db.ref('categories/' + id).remove();
+    toast('ক্যাটাগরি মুছে ফেলা হয়েছে','success');
+  }catch(e){ toast('ব্যর্থ: '+fbErr(e),'error'); }
+}
+window.deleteCategory = deleteCategory;
+
+/* ================================================================
+   USERS
+   ================================================================ */
+function renderUsersTable(){
+  const q = ($('#userSearch')?.value||'').toLowerCase().trim();
+  let list = Object.entries(A.users||{}).map(([uid,u])=>({uid, ...u}));
+  if(q) list = list.filter(u => [(u.name||''),(u.email||''),(u.uid||'')].join(' ').toLowerCase().includes(q));
+  list.sort((a,b)=>(b.createdAt||b.lastActive||0)-(a.createdAt||a.lastActive||0));
+
+  const el = $('#usersTable');
+  if(!list.length){
+    el.innerHTML = `<div class="empty"><div class="ei">👥</div><h4>কোনো ইউজার নেই</h4></div>`;
+    return;
+  }
+  el.innerHTML = `<table>
+    <thead><tr><th>ইউজার</th><th>UID</th><th>যোগদান</th><th>সর্বশেষ সক্রিয়</th><th>স্ট্যাটাস</th><th style="text-align:right">অ্যাকশন</th></tr></thead>
+    <tbody>
+      ${list.map(u => `
+        <tr>
+          <td>
+            <div class="tbl-app">
+              <div class="ic">${u.photo
+                ? `<img src="${esc(u.photo)}" alt="" loading="lazy" onerror="this.parentNode.innerHTML='<div class=\\'ph\\'>${esc(ini(u.name||u.email))}</div>'">`
+                : `<div class="ph">${esc(ini(u.name||u.email))}</div>`}</div>
+              <div class="tx"><b>${esc(u.name||'Unnamed')}</b><span>${esc(u.email||'—')}</span></div>
+            </div>
+          </td>
+          <td style="font-family:monospace;font-size:11px;color:var(--muted);max-width:160px;overflow:hidden;text-overflow:ellipsis">${esc(u.uid)}</td>
+          <td>${relTime(u.createdAt)}</td>
+          <td>${relTime(u.lastActive)}</td>
+          <td><span class="pill ${u.status==='blocked'?'danger':'on'}">${u.status==='blocked'?'Blocked':'Active'}</span></td>
+          <td>
+            <div class="row-actions">
+              <button class="btn btn-ghost btn-xs" onclick="viewUser('${esc(u.uid)}')">👁️</button>
+              <button class="btn ${u.status==='blocked'?'btn-success':'btn-danger'} btn-xs" onclick="toggleUserBlock('${esc(u.uid)}')">${u.status==='blocked'?'Unblock':'Block'}</button>
+            </div>
+          </td>
+        </tr>`).join('')}
+    </tbody>
+  </table>`;
+}
+
+async function toggleUserBlock(uid){
+  const u = A.users[uid]; if(!u) return;
+  const next = u.status === 'blocked' ? 'active' : 'blocked';
+  const ok = await confirmDialog(next==='blocked'?'ইউজার ব্লক':'আনব্লক করুন', `${u.email||uid} কে ${next==='blocked'?'ব্লক':'আনব্লক'} করবেন?`);
+  if(!ok) return;
+  try{
+    await db.ref('users/' + uid + '/status').set(next);
+    toast(next==='blocked'?'ইউজার ব্লক করা হয়েছে':'ইউজার আনব্লক করা হয়েছে','success');
+  }catch(e){ toast('ব্যর্থ: '+fbErr(e),'error'); }
+}
+window.toggleUserBlock = toggleUserBlock;
+
+function viewUser(uid){
+  const u = A.users[uid]||{};
+  openModal(`
+    <div class="modal-head"><h3>👤 ইউজার প্রোফাইল</h3><button class="icon-btn" onclick="closeModal()">✕</button></div>
+    <div class="modal-body">
+      <div style="text-align:center;margin-bottom:16px">
+        ${u.photo
+          ? `<img src="${esc(u.photo)}" style="width:80px;height:80px;border-radius:50%;margin:0 auto 10px;object-fit:cover">`
+          : `<div style="width:80px;height:80px;border-radius:50%;margin:0 auto 10px;background:linear-gradient(135deg,var(--primary),var(--primary-2));display:grid;place-items:center;color:#fff;font-size:28px;font-weight:800">${esc(ini(u.name||u.email))}</div>`}
+        <h3 style="margin:0 0 3px">${esc(u.name||'Unnamed')}</h3>
+        <p style="margin:0;color:var(--muted);font-size:13px">${esc(u.email||'')}</p>
+      </div>
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden">
+        <div style="padding:11px 14px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--muted)">UID</span><span style="font-family:monospace;font-size:11px">${esc(uid)}</span></div>
+        <div style="padding:11px 14px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--muted)">Status</span><span>${esc(u.status||'active')}</span></div>
+        <div style="padding:11px 14px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--muted)">Joined</span><span>${fmtDate(u.createdAt)}</span></div>
+        <div style="padding:11px 14px;display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--muted)">Last Active</span><span>${fmtDate(u.lastActive)}</span></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal()">বন্ধ করুন</button>
+    </div>
+  `);
+}
+window.viewUser = viewUser;
+
+/* ================================================================
+   NOTIFICATIONS
+   ================================================================ */
+function renderNotifsTable(){
+  const list = Object.entries(A.notifs||{}).map(([id,n])=>({id, ...n}))
+    .sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+  const el = $('#notifsTable');
+  if(!list.length){
+    el.innerHTML = `<div class="empty"><div class="ei">🔔</div><h4>কোনো নোটিফিকেশন নেই</h4><p>"+ নতুন নোটিফিকেশন" দিয়ে ঘোষণা পাঠান।</p></div>`;
+    return;
+  }
+  el.innerHTML = `<table>
+    <thead><tr><th>শিরোনাম</th><th>টাইপ</th><th>তারিখ</th><th>স্ট্যাটাস</th><th style="text-align:right">অ্যাকশন</th></tr></thead>
+    <tbody>
+      ${list.map(n => `
+        <tr>
+          <td>
+            <div style="display:flex;align-items:center;gap:10px">
+              ${n.image?`<img src="${esc(n.image)}" style="width:38px;height:38px;border-radius:9px;object-fit:cover" onerror="this.style.display='none'">`:''}
+              <div style="min-width:0">
+                <b style="display:block;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:260px">${esc(n.title||'—')}</b>
+                <span style="font-size:11.5px;color:var(--muted);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:260px">${esc(n.message||'')}</span>
+              </div>
+            </div>
+          </td>
+          <td><span class="pill info">${esc(n.type||'general')}</span></td>
+          <td>${relTime(n.createdAt)}</td>
+          <td><span class="pill ${n.published!==false?'on':'off'}">${n.published!==false?'Live':'Hidden'}</span></td>
+          <td>
+            <div class="row-actions">
+              <button class="btn btn-ghost btn-xs" onclick="openNotifForm('${esc(n.id)}')">✏️</button>
+              <button class="btn btn-ghost btn-xs" onclick="toggleNotifPublish('${esc(n.id)}')">${n.published!==false?'🚫':'✅'}</button>
+              <button class="btn btn-danger btn-xs" onclick="deleteNotif('${esc(n.id)}')">🗑️</button>
+            </div>
+          </td>
+        </tr>`).join('')}
+    </tbody>
+  </table>`;
+}
+
+function openNotifForm(id){
+  const n = id ? (A.notifs[id]||{}) : {};
+  openModal(`
+    <div class="modal-head">
+      <h3>${id?'✏️ নোটিফিকেশন এডিট':'➕ নতুন নোটিফিকেশন'}</h3>
+      <button class="icon-btn" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field"><label>Title *</label><input id="nTitle" class="input" value="${esc(n.title||'')}" placeholder="ঘোষণার শিরোনাম"></div>
+      <div class="field"><label>Message *</label><textarea id="nMsg" class="input" placeholder="বিস্তারিত বার্তা...">${esc(n.message||'')}</textarea></div>
+      <div class="form-row-2">
+        <div class="field"><label>Image URL (optional)</label><input id="nImg" class="input" value="${esc(n.image||'')}" placeholder="https://.../banner.png"></div>
+        <div class="field"><label>Type</label>
+          <select id="nType" class="input">
+            <option value="general" ${n.type==='general'?'selected':''}>general</option>
+            <option value="update" ${n.type==='update'?'selected':''}>update</option>
+            <option value="offer" ${n.type==='offer'?'selected':''}>offer</option>
+            <option value="alert" ${n.type==='alert'?'selected':''}>alert</option>
+          </select>
+        </div>
+      </div>
+      <label class="check-row" style="max-width:220px"><input type="checkbox" id="nPub" ${n.published!==false?'checked':''}> Publish</label>
+      <div id="nErr" style="display:none;color:var(--danger);font-size:12.5px;margin-top:10px"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal()">বাতিল</button>
+      <button class="btn btn-primary" onclick="saveNotif(${id?`'${esc(id)}'`:'null'})">💾 সংরক্ষণ</button>
+    </div>
+  `);
+}
+window.openNotifForm = openNotifForm;
+
+async function saveNotif(id){
+  const title = $('#nTitle').value.trim();
+  const msg = $('#nMsg').value.trim();
+  const errEl = $('#nErr');
+  if(title.length<2 || msg.length<2){ errEl.textContent='শিরোনাম ও বার্তা দিন।'; errEl.style.display='block'; return; }
+  const data = {
+    title, message: msg,
+    image: $('#nImg').value.trim(),
+    type: $('#nType').value,
+    published: $('#nPub').checked,
+    updatedAt: Date.now()
+  };
+  try{
+    if(id){
+      await db.ref('notifications/' + id).update(data);
+      toast('নোটিফিকেশন আপডেট ✅','success');
+    } else {
+      data.createdAt = Date.now();
+      await db.ref('notifications').push(data);
+      toast('নোটিফিকেশন পাঠানো হয়েছে ✅','success');
+    }
+    closeModal();
+  }catch(e){
+    errEl.textContent='ব্যর্থ: '+fbErr(e);
+    errEl.style.display='block';
+  }
+}
+window.saveNotif = saveNotif;
+
+async function toggleNotifPublish(id){
+  const n = A.notifs[id]; if(!n) return;
+  try{
+    await db.ref('notifications/' + id + '/published').set(n.published === false);
+    toast(n.published===false?'প্রকাশিত ✅':'লুকানো হয়েছে','success');
+  }catch(e){ toast('ব্যর্থ: '+fbErr(e),'error'); }
+}
+window.toggleNotifPublish = toggleNotifPublish;
+
+async function deleteNotif(id){
+  const n = A.notifs[id]; if(!n) return;
+  const ok = await confirmDialog('নোটিফিকেশন মুছুন', `"${n.title}" স্থায়ীভাবে মুছে যাবে?`);
+  if(!ok) return;
+  try{
+    await db.ref('notifications/' + id).remove();
+    toast('মুছে ফেলা হয়েছে','success');
+  }catch(e){ toast('ব্যর্থ: '+fbErr(e),'error'); }
+}
+window.deleteNotif = deleteNotif;
+
+/* ================================================================
+   SUPPORT
+   ================================================================ */
+function setSupportFilter(f, el){
+  A.supportFilter = f;
+  $$('#supportChips .chip').forEach(c=>c.classList.remove('active'));
+  if(el) el.classList.add('active');
+  renderSupportList();
+}
+window.setSupportFilter = setSupportFilter;
+
+function renderSupportList(){
+  let list = Object.entries(A.messages||{}).map(([id,m])=>({id, ...m}))
+    .sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+  if(A.supportFilter !== 'all') list = list.filter(m => (m.status||'unread') === A.supportFilter);
+
+  const el = $('#supportList');
+  if(!list.length){
+    el.innerHTML = `<div class="empty"><div class="ei">📩</div><h4>কোনো মেসেজ নেই</h4></div>`;
+    return;
+  }
+  el.innerHTML = list.map(m => {
+    const unread = (m.status||'unread') === 'unread';
+    return `
+      <div style="padding:14px 16px;border-bottom:1px solid var(--border);${unread?'background:linear-gradient(90deg,rgba(79,124,255,.06),transparent)':''}">
+        <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:6px">
+          <div>
+            <b style="font-size:13.5px">${esc(m.subject||'(no subject)')}</b>
+            <div style="font-size:11.5px;color:var(--muted)">${esc(m.name||'—')} • ${esc(m.email||'—')}</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+            <span class="pill ${unread?'warn':'on'}">${esc(m.status||'unread')}</span>
+            <span style="font-size:11px;color:var(--muted)">${relTime(m.createdAt)}</span>
+          </div>
+        </div>
+        <p style="margin:8px 0;font-size:13px;color:var(--muted);line-height:1.65;white-space:pre-wrap">${esc(m.message||'')}</p>
+        <div class="row-actions">
+          <button class="btn btn-ghost btn-xs" onclick="markSupport('${esc(m.id)}','${unread?'read':'unread'}')">${unread?'📖 Mark Read':'📩 Mark Unread'}</button>
+          <button class="btn btn-ghost btn-xs" onclick="markSupport('${esc(m.id)}','replied')">✅ Replied</button>
+          <a class="btn btn-ghost btn-xs" href="mailto:${esc(m.email)}?subject=Re: ${esc(m.subject||'')}">✉️ Reply</a>
+          <button class="btn btn-danger btn-xs" onclick="deleteSupport('${esc(m.id)}')">🗑️</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+async function markSupport(id, status){
+  try{
+    await db.ref('supportMessages/' + id + '/status').set(status);
+    toast('স্ট্যাটাস আপডেট হয়েছে','success');
+  }catch(e){ toast('ব্যর্থ: '+fbErr(e),'error'); }
+}
+window.markSupport = markSupport;
+
+async function deleteSupport(id){
+  const ok = await confirmDialog('মুছুন','এই মেসেজটি মুছে ফেলা হবে?');
+  if(!ok) return;
+  try{
+    await db.ref('supportMessages/' + id).remove();
+    toast('মুছে ফেলা হয়েছে','success');
+  }catch(e){ toast('ব্যর্থ: '+fbErr(e),'error'); }
+}
+window.deleteSupport = deleteSupport;
+
+/* ================================================================
+   REPORTS
+   ================================================================ */
+function setReportFilter(f, el){
+  A.reportFilter = f;
+  $$('#reportChips .chip').forEach(c=>c.classList.remove('active'));
+  if(el) el.classList.add('active');
+  renderReportsList();
+}
+window.setReportFilter = setReportFilter;
+
+function renderReportsList(){
+  let list = Object.entries(A.reports||{}).map(([id,r])=>({id, ...r}))
+    .sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+  if(A.reportFilter !== 'all') list = list.filter(r => (r.status||'pending') === A.reportFilter);
+
+  const el = $('#reportsList');
+  if(!list.length){
+    el.innerHTML = `<div class="empty"><div class="ei">🚨</div><h4>কোনো রিপোর্ট নেই</h4></div>`;
+    return;
+  }
+  el.innerHTML = list.map(r => `
+    <div style="padding:14px 16px;border-bottom:1px solid var(--border)">
+      <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:6px">
+        <div>
+          <b style="font-size:13.5px">${esc(r.appName||'Unknown App')}</b>
+          <div style="font-size:11.5px;color:var(--muted)">রিপোর্টকারী: ${esc(r.userName||r.userEmail||'—')} • ${esc(r.userEmail||'')}</div>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <span class="pill ${r.status==='resolved'?'on':r.status==='reviewing'?'warn':'danger'}">${esc(r.status||'pending')}</span>
+          <span style="font-size:11px;color:var(--muted)">${relTime(r.createdAt)}</span>
+        </div>
+      </div>
+      <div style="font-size:12.5px;color:var(--muted);margin:6px 0">
+        <b style="color:var(--text)">কারণ:</b> ${esc(r.reason||'—')}
+      </div>
+      ${r.message?`<p style="margin:6px 0;font-size:13px;color:var(--muted);white-space:pre-wrap">${esc(r.message)}</p>`:''}
+      <div class="row-actions">
+        <button class="btn btn-ghost btn-xs" onclick="setReportStatus('${esc(r.id)}','reviewing')">⏳ Review</button>
+        <button class="btn btn-success btn-xs" onclick="setReportStatus('${esc(r.id)}','resolved')">✅ Resolved</button>
+        ${r.appId?`<button class="btn btn-ghost btn-xs" onclick="openAppForm('${esc(r.appId)}')">📦 Open App</button>`:''}
+        <button class="btn btn-danger btn-xs" onclick="deleteReport('${esc(r.id)}')">🗑️</button>
+      </div>
+    </div>`).join('');
+}
+
+async function setReportStatus(id, status){
+  try{
+    await db.ref('reports/' + id + '/status').set(status);
+    toast('স্ট্যাটাস আপডেট হয়েছে','success');
+  }catch(e){ toast('ব্যর্থ: '+fbErr(e),'error'); }
+}
+window.setReportStatus = setReportStatus;
+
+async function deleteReport(id){
+  const ok = await confirmDialog('মুছুন','রিপোর্টটি মুছে ফেলা হবে?');
+  if(!ok) return;
+  try{
+    await db.ref('reports/' + id).remove();
+    toast('মুছে ফেলা হয়েছে','success');
+  }catch(e){ toast('ব্যর্থ: '+fbErr(e),'error'); }
+}
+window.deleteReport = deleteReport;
+
+/* ================================================================
+   DOWNLOADS
+   ================================================================ */
+function renderDownloadsTable(){
+  const list = (A.downloads||[]).slice(0,200);
+  const el = $('#downloadsTable');
+  if(!list.length){
+    el.innerHTML = `<div class="empty"><div class="ei">📥</div><h4>কোনো ডাউনলোড নেই</h4></div>`;
+    return;
+  }
+  el.innerHTML = `<table>
+    <thead><tr><th>অ্যাপ</th><th>ইউজার</th><th>UID</th><th>সময়</th></tr></thead>
+    <tbody>
+      ${list.map(d => `
+        <tr>
+          <td>
+            <div class="tbl-app">
+              <div class="ic">${d.appIcon
+                ? `<img src="${esc(d.appIcon)}" alt="" loading="lazy">`
+                : `<div class="ph">${esc((d.appName||'A')[0].toUpperCase())}</div>`}</div>
+              <div class="tx"><b>${esc(d.appName||'—')}</b></div>
+            </div>
+          </td>
+          <td>${esc(d.userEmail||'guest')}</td>
+          <td style="font-family:monospace;font-size:11px;color:var(--muted)">${esc(d.uid||'—')}</td>
+          <td>${fmtDate(d.ts)}</td>
+        </tr>`).join('')}
+    </tbody>
+  </table>`;
+}
+
+function exportDownloadsCSV(){
+  const list = A.downloads || [];
+  if(!list.length){ toast('ডাউনলোড ডেটা নেই','warn'); return; }
+  const rows = [['appId','appName','uid','userEmail','timestamp','date']];
+  list.forEach(d => rows.push([
+    d.appId||'', d.appName||'', d.uid||'', d.userEmail||'',
+    d.ts||'', d.ts?new Date(d.ts).toISOString():''
+  ]));
+  const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  downloadFile('downloads-' + Date.now() + '.csv', csv, 'text/csv');
+  toast('CSV ডাউনলোড হয়েছে','success');
+}
+window.exportDownloadsCSV = exportDownloadsCSV;
+
+/* ================================================================
+   SETTINGS
+   ================================================================ */
+function loadSettingsForm(){
+  const s = A.settings || {};
+  $('#stName').value     = s.storeName || '';
+  $('#stLogo').value     = s.logoUrl || '';
+  $('#stDesc').value     = s.description || '';
+  $('#stAnnounce').value = s.announcement || '';
+  $('#stEmail').value    = s.supportEmail || '';
+  $('#stTelegram').value = s.telegram || '';
+  $('#stFacebook').value = s.facebook || '';
+  $('#stPrivacy').value  = s.privacyUrl || '';
+  $('#stTerms').value    = s.termsUrl || '';
+  $('#stAbout').value    = s.aboutUrl || '';
+  $('#stMaintenance').checked = s.maintenance === true;
+}
+
+async function saveSettings(){
+  const data = {
+    storeName:    $('#stName').value.trim() || 'AppVerse',
+    logoUrl:      $('#stLogo').value.trim(),
+    description:  $('#stDesc').value.trim(),
+    announcement: $('#stAnnounce').value.trim(),
+    supportEmail: $('#stEmail').value.trim(),
+    telegram:     $('#stTelegram').value.trim(),
+    facebook:     $('#stFacebook').value.trim(),
+    privacyUrl:   $('#stPrivacy').value.trim(),
+    termsUrl:     $('#stTerms').value.trim(),
+    aboutUrl:     $('#stAbout').value.trim(),
+    maintenance:  $('#stMaintenance').checked,
+    updatedAt:    Date.now()
+  };
+  try{
+    await db.ref('settings/store').update(data);
+    toast('সেটিংস সংরক্ষিত ✅','success');
+    applyBranding();
+  }catch(e){ toast('ব্যর্থ: '+fbErr(e),'error'); }
+}
+window.saveSettings = saveSettings;
+
+async function exportBackup(){
+  try{
+    const snap = await db.ref('/').once('value');
+    const data = snap.val() || {};
+    downloadFile('appverse-backup-' + Date.now() + '.json', JSON.stringify(data, null, 2), 'application/json');
+    toast('ব্যাকআপ ডাউনলোড হয়েছে ✅','success');
+  }catch(e){ toast('ব্যর্থ: '+fbErr(e),'error'); }
+}
+window.exportBackup = exportBackup;
+
+function downloadFile(name, content, mime){
+  const blob = new Blob([content], { type: mime || 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = name;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(()=>{ URL.revokeObjectURL(url); a.remove(); }, 400);
+}
+
+/* ================================================================
+   SECURITY / ADMINS
+   ================================================================ */
+const RECOMMENDED_RULES = `{
+  "rules": {
+    ".read": false,
+    ".write": false,
+
+    "admins": {
+      ".read": "auth != null",
+      ".write": "root.child('admins').child(auth.uid).child('active').val() === true",
+      "$uid": {
+        ".read": "auth != null && (auth.uid === $uid || root.child('admins').child(auth.uid).child('active').val() === true)"
+      }
+    },
+
+    "apps": {
+      ".read": true,
+      ".write": "root.child('admins').child(auth.uid).child('active').val() === true",
+      ".indexOn": ["category","createdAt","downloads","published","trending","featured"]
+    },
+
+    "categories": {
+      ".read": true,
+      ".write": "root.child('admins').child(auth.uid).child('active').val() === true"
+    },
+
+    "notifications": {
+      ".read": "auth != null",
+      ".write": "root.child('admins').child(auth.uid).child('active').val() === true",
+      ".indexOn": ["createdAt","published"]
+    },
+
+    "settings": {
+      "store": {
+        ".read": true,
+        ".write": "root.child('admins').child(auth.uid).child('active').val() === true"
+      }
+    },
+
+    "users": {
+      ".read": "root.child('admins').child(auth.uid).child('active').val() === true",
+      "$uid": {
+        ".read": "auth != null && (auth.uid === $uid || root.child('admins').child(auth.uid).child('active').val() === true)",
+        ".write": "auth != null && (auth.uid === $uid || root.child('admins').child(auth.uid).child('active').val() === true)",
+        ".validate": "newData.hasChildren(['name','email'])"
+      }
+    },
+
+    "favorites": {
+      "$uid": {
+        ".read": "auth != null && (auth.uid === $uid || root.child('admins').child(auth.uid).child('active').val() === true)",
+        ".write": "auth != null && auth.uid === $uid"
+      }
+    },
+
+    "downloads": {
+      ".read": "root.child('admins').child(auth.uid).child('active').val() === true",
+      ".indexOn": ["uid","ts","appId"],
+      "$id": {
+        ".write": "auth != null",
+        ".validate": "newData.hasChildren(['appId','uid','ts'])"
+      }
+    },
+
+    "supportMessages": {
+      ".read": "root.child('admins').child(auth.uid).child('active').val() === true",
+      ".indexOn": ["status","createdAt"],
+      "$id": {
+        ".write": "auth != null || root.child('admins').child(auth.uid).child('active').val() === true",
+        ".validate": "newData.hasChildren(['name','email','subject','message'])"
+      }
+    },
+
+    "reports": {
+      ".read": "root.child('admins').child(auth.uid).child('active').val() === true",
+      ".indexOn": ["status","uid","createdAt"],
+      "$id": {
+        ".write": "auth != null || root.child('admins').child(auth.uid).child('active').val() === true",
+        ".validate": "newData.hasChildren(['appId','uid','reason'])"
+      }
+    }
+  }
+}`;
+
+function renderSecurity(){
+  $('#rulesPreview').textContent = RECOMMENDED_RULES;
+  const list = Object.entries(A.admins||{}).map(([uid, a])=>({uid, ...a}));
+  const el = $('#adminsTable');
+  if(!list.length){
+    el.innerHTML = `<div class="empty" style="padding:30px 20px"><div class="ei">🛡️</div><h4>কোনো অ্যাডমিন নেই</h4></div>`;
+    return;
+  }
+  el.innerHTML = `<table>
+    <thead><tr><th>UID</th><th>Role</th><th>Status</th><th style="text-align:right">Action</th></tr></thead>
+    <tbody>
+      ${list.map(a => `
+        <tr>
+          <td style="font-family:monospace;font-size:11.5px">${esc(a.uid)}${A.user && a.uid===A.user.uid?' <span class="pill info" style="margin-left:6px">YOU</span>':''}</td>
+          <td><span class="pill info">${esc(a.role||'admin')}</span></td>
+          <td><span class="pill ${a.active!==false?'on':'danger'}">${a.active!==false?'Active':'Disabled'}</span></td>
+          <td>
+            <div class="row-actions">
+              ${A.user && a.uid !== A.user.uid ? `
+                <button class="btn btn-ghost btn-xs" onclick="toggleAdminActive('${esc(a.uid)}')">${a.active!==false?'Disable':'Enable'}</button>
+                <button class="btn btn-danger btn-xs" onclick="removeAdmin('${esc(a.uid)}')">🗑️</button>` : ''}
+            </div>
+          </td>
+        </tr>`).join('')}
+    </tbody>
+  </table>`;
+}
+
+async function addAdmin(){
+  const uid = $('#newAdminUid').value.trim();
+  const role = $('#newAdminRole').value;
+  if(uid.length < 10){ toast('সঠিক UID দিন','warn'); return; }
+  try{
+    await db.ref('admins/' + uid).set({
+      role, active: true, addedAt: Date.now(),
+      addedBy: A.user ? A.user.uid : null
+    });
+    $('#newAdminUid').value = '';
+    toast('অ্যাডমিন যোগ করা হয়েছে ✅','success');
+  }catch(e){ toast('ব্যর্থ: '+fbErr(e),'error'); }
+}
+window.addAdmin = addAdmin;
+
+async function toggleAdminActive(uid){
+  const a = A.admins[uid]; if(!a) return;
+  try{
+    await db.ref('admins/' + uid + '/active').set(a.active===false);
+    toast('স্ট্যাটাস আপডেট ✅','success');
+  }catch(e){ toast('ব্যর্থ: '+fbErr(e),'error'); }
+}
+window.toggleAdminActive = toggleAdminActive;
+
+async function removeAdmin(uid){
+  const ok = await confirmDialog('অ্যাডমিন মুছুন', `UID: ${uid} — স্থায়ীভাবে অ্যাডমিন থেকে সরানো হবে?`);
+  if(!ok) return;
+  try{
+    await db.ref('admins/' + uid).remove();
+    toast('মুছে ফেলা হয়েছে','success');
+  }catch(e){ toast('ব্যর্থ: '+fbErr(e),'error'); }
+}
+window.removeAdmin = removeAdmin;
+
+function copyRules(){
+  if(navigator.clipboard){
+    navigator.clipboard.writeText(RECOMMENDED_RULES)
+      .then(()=>toast('Rules কপি হয়েছে ✅','success'))
+      .catch(()=>toast('কপি করা যায়নি','error'));
+  } else {
+    toast('আপনার ব্রাউজারে কপি করা যায় না — ম্যানুয়ালি সিলেক্ট করে কপি করুন','warn');
+  }
+}
+window.copyRules = copyRules;
+
+/* ================================================================
+   KEYBOARD
+   ================================================================ */
+document.addEventListener('keydown', e => {
+  if(e.key === 'Escape'){
+    if($('#modalOverlay').classList.contains('open')) closeModal();
+    if($('#confirmOverlay').classList.contains('open')) cfClose(false);
+  }
+});
+$('#adPass')?.addEventListener('keydown', e => { if(e.key === 'Enter') adminLogin(); });
+$('#adEmail')?.addEventListener('keydown', e => { if(e.key === 'Enter') adminLogin(); });
+
+console.log('[AppVerse Admin] ready ✔ — UID bootstrap:', BOOTSTRAP_ADMINS.join(', '));
+</script>
+</body>
+</html>

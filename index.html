@@ -1,0 +1,2121 @@
+<!DOCTYPE html>
+<html lang="bn" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover" />
+<meta name="theme-color" content="#0e1014" />
+<title>APK DOKAN — Android App Store</title>
+<style>
+/* ============================================================
+   THEME TOKENS
+   ============================================================ */
+:root{
+  --bg:#0e1014; --bg-2:#141821; --card:#1a1f2b; --card-2:#212836;
+  --text:#eaeef5; --muted:#8b95a8; --border:#262e3d;
+  --primary:#4f7cff; --primary-2:#8b5cf6; --accent:#22d3ee;
+  --success:#22c55e; --danger:#ef4444; --warn:#f59e0b;
+  --radius:16px; --radius-sm:10px;
+  --shadow:0 10px 30px rgba(0,0,0,.45);
+  --header-h:58px; --nav-h:62px;
+}
+html[data-theme="light"]{
+  --bg:#f4f6fb; --bg-2:#ffffff; --card:#ffffff; --card-2:#eef2f9;
+  --text:#0f172a; --muted:#5b6b83; --border:#e3e9f2;
+  --shadow:0 8px 24px rgba(15,23,42,.08);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;overflow-x:hidden}
+body{
+  background:var(--bg); color:var(--text); font-size:15px; line-height:1.5;
+  font-family:'Segoe UI',system-ui,-apple-system,'Noto Sans Bengali',Roboto,Arial,sans-serif;
+  transition:background .25s ease,color .25s ease;
+  padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom) + 8px);
+}
+img{max-width:100%;display:block}
+button,input,textarea,select{font-family:inherit;font-size:inherit;color:inherit}
+button{cursor:pointer;border:none;background:none}
+a{color:var(--primary);text-decoration:none}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:8px}
+::-webkit-scrollbar-track{background:transparent}
+
+/* ============================================================
+   LAYOUT
+   ============================================================ */
+.wrap{max-width:1280px;margin:0 auto;padding:0 14px}
+.header{
+  position:sticky;top:0;z-index:60;height:var(--header-h);
+  background:color-mix(in srgb,var(--bg) 82%,transparent);
+  backdrop-filter:saturate(180%) blur(16px);
+  -webkit-backdrop-filter:saturate(180%) blur(16px);
+  border-bottom:1px solid var(--border);
+}
+.hdr-inner{
+  max-width:1280px;margin:0 auto;height:100%;padding:0 14px;
+  display:flex;align-items:center;gap:12px;
+}
+.brand{display:flex;align-items:center;gap:9px;cursor:pointer;flex-shrink:0}
+.brand img{width:32px;height:32px;border-radius:9px;object-fit:cover;background:var(--card-2)}
+.brand .logo-fallback{
+  width:32px;height:32px;border-radius:9px;display:grid;place-items:center;
+  background:linear-gradient(135deg,var(--primary),var(--primary-2));
+  color:#fff;font-weight:800;font-size:16px;
+}
+.brand-name{
+  font-weight:800;font-size:17px;letter-spacing:-.3px;white-space:nowrap;
+  background:linear-gradient(90deg,var(--primary),var(--primary-2));
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.hdr-search{flex:1;max-width:520px;position:relative;display:none}
+.hdr-search input{
+  width:100%;height:40px;border-radius:999px;border:1px solid var(--border);
+  background:var(--card);padding:0 16px 0 42px;outline:none;transition:.2s;
+}
+.hdr-search input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(79,124,255,.15)}
+.hdr-search svg{position:absolute;left:14px;top:50%;transform:translateY(-50%);opacity:.55}
+.hdr-actions{margin-left:auto;display:flex;align-items:center;gap:4px}
+.icon-btn{
+  width:40px;height:40px;border-radius:12px;display:grid;place-items:center;
+  color:var(--text);position:relative;transition:.18s;
+}
+.icon-btn:hover{background:var(--card-2)}
+.icon-btn:active{transform:scale(.92)}
+.badge{
+  position:absolute;top:5px;right:5px;min-width:17px;height:17px;padding:0 4px;
+  border-radius:9px;background:var(--danger);color:#fff;font-size:10px;font-weight:700;
+  display:none;place-items:center;line-height:17px;text-align:center;border:2px solid var(--bg);
+}
+.badge.show{display:grid}
+.avatar-btn img,.avatar-btn .av-fallback{
+  width:30px;height:30px;border-radius:50%;object-fit:cover;
+  background:linear-gradient(135deg,var(--primary),var(--primary-2));
+  display:grid;place-items:center;color:#fff;font-weight:700;font-size:13px;
+}
+
+/* ============================================================
+   BOTTOM NAV (mobile)
+   ============================================================ */
+.bottom-nav{
+  position:fixed;left:0;right:0;bottom:0;z-index:70;height:calc(var(--nav-h) + env(safe-area-inset-bottom));
+  padding-bottom:env(safe-area-inset-bottom);
+  background:color-mix(in srgb,var(--bg) 90%,transparent);
+  backdrop-filter:saturate(180%) blur(18px);-webkit-backdrop-filter:saturate(180%) blur(18px);
+  border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-around;
+}
+.nav-item{
+  flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;
+  color:var(--muted);font-size:10.5px;font-weight:600;padding:6px 0;transition:.18s;position:relative;
+}
+.nav-item.active{color:var(--primary)}
+.nav-item.active::before{
+  content:'';position:absolute;top:0;width:26px;height:3px;border-radius:0 0 4px 4px;background:var(--primary);
+}
+.nav-item svg{width:22px;height:22px}
+
+/* ============================================================
+   VIEWS / SECTIONS
+   ============================================================ */
+.view{display:none;animation:fadeUp .3s ease}
+.view.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.section{margin:22px 0}
+.section-head{display:flex;align-items:center;justify-content:space-between;margin:0 0 12px}
+.section-title{font-size:16.5px;font-weight:800;letter-spacing:-.2px;display:flex;align-items:center;gap:7px}
+.see-all{font-size:12.5px;font-weight:700;color:var(--primary);padding:5px 10px;border-radius:8px}
+.see-all:hover{background:rgba(79,124,255,.1)}
+
+/* Horizontal scroll row */
+.hscroll{
+  display:flex;gap:12px;overflow-x:auto;padding:2px 14px 10px;margin:0 -14px;
+  scroll-snap-type:x proximity;scrollbar-width:none;
+}
+.hscroll::-webkit-scrollbar{display:none}
+.hscroll .app-card{flex:0 0 118px;scroll-snap-align:start}
+
+/* App card */
+.app-card{cursor:pointer;transition:transform .18s ease}
+.app-card:active{transform:scale(.96)}
+.app-card .thumb{
+  width:100%;aspect-ratio:1;border-radius:18px;overflow:hidden;background:var(--card-2);
+  position:relative;box-shadow:0 4px 14px rgba(0,0,0,.18);
+}
+.app-card .thumb img{width:100%;height:100%;object-fit:cover}
+.app-card .thumb .ph{
+  width:100%;height:100%;display:grid;place-items:center;font-size:28px;font-weight:800;color:#fff;
+  background:linear-gradient(135deg,var(--primary),var(--primary-2));
+}
+.app-card .tag-float{
+  position:absolute;top:6px;left:6px;background:rgba(0,0,0,.65);color:#fff;
+  font-size:9px;font-weight:800;padding:3px 7px;border-radius:7px;backdrop-filter:blur(6px);
+  text-transform:uppercase;letter-spacing:.4px;
+}
+.app-card .tag-float.hot{background:linear-gradient(135deg,#f97316,#ef4444)}
+.app-card .tag-float.new{background:linear-gradient(135deg,#22c55e,#16a34a)}
+.app-card .nm{font-size:12.5px;font-weight:700;margin-top:7px;line-height:1.3;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.app-card .meta{font-size:11px;color:var(--muted);margin-top:2px;display:flex;align-items:center;gap:5px}
+.app-card .meta .star{color:#fbbf24}
+
+/* Grid */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:16px 12px}
+.grid.list{grid-template-columns:1fr;gap:10px}
+.grid.list .app-card{display:flex;gap:12px;align-items:center;background:var(--card);
+  padding:10px;border-radius:var(--radius);border:1px solid var(--border)}
+.grid.list .app-card .thumb{width:56px;height:56px;flex:0 0 56px;border-radius:14px}
+.grid.list .app-card .nm{margin-top:0}
+.grid.list .app-card .tag-float{display:none}
+
+/* Hero */
+.hero{
+  margin-top:16px;border-radius:22px;padding:22px;position:relative;overflow:hidden;
+  background:linear-gradient(135deg,rgba(79,124,255,.22),rgba(139,92,246,.18));
+  border:1px solid var(--border);
+}
+.hero::after{
+  content:'';position:absolute;width:240px;height:240px;border-radius:50%;
+  background:radial-gradient(circle,rgba(79,124,255,.35),transparent 70%);
+  right:-90px;top:-90px;pointer-events:none;
+}
+.hero-inner{display:flex;gap:16px;align-items:center;position:relative;z-index:1}
+.hero-icon{
+  width:86px;height:86px;border-radius:22px;flex:0 0 86px;overflow:hidden;
+  box-shadow:0 10px 24px rgba(0,0,0,.35);background:var(--card-2);
+}
+.hero-icon img{width:100%;height:100%;object-fit:cover}
+.hero-info{flex:1;min-width:0}
+.hero-badge{
+  display:inline-block;font-size:10px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;
+  background:linear-gradient(90deg,var(--primary),var(--primary-2));color:#fff;
+  padding:3px 9px;border-radius:6px;margin-bottom:7px;
+}
+.hero-info h2{margin:0 0 4px;font-size:19px;font-weight:800;letter-spacing:-.4px}
+.hero-info p{margin:0 0 10px;font-size:12.5px;color:var(--muted);
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.hero-stats{display:flex;gap:14px;font-size:11.5px;color:var(--muted);margin-bottom:12px;flex-wrap:wrap}
+.hero-stats b{color:var(--text)}
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:7px;
+  height:40px;padding:0 18px;border-radius:12px;font-weight:700;font-size:13.5px;
+  transition:.18s;white-space:nowrap;
+}
+.btn:active{transform:scale(.96)}
+.btn-primary{background:linear-gradient(135deg,var(--primary),var(--primary-2));color:#fff;
+  box-shadow:0 6px 18px rgba(79,124,255,.35)}
+.btn-primary:hover{filter:brightness(1.08)}
+.btn-ghost{background:var(--card-2);color:var(--text);border:1px solid var(--border)}
+.btn-ghost:hover{background:var(--card)}
+.btn-danger{background:var(--danger);color:#fff}
+.btn-sm{height:34px;padding:0 13px;font-size:12.5px;border-radius:10px}
+.btn-block{width:100%}
+.btn[disabled]{opacity:.5;pointer-events:none}
+
+/* Chips */
+.chips{display:flex;gap:8px;overflow-x:auto;padding:4px 14px 8px;margin:0 -14px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{
+  flex:0 0 auto;height:34px;padding:0 15px;border-radius:999px;background:var(--card);
+  border:1px solid var(--border);font-size:12.5px;font-weight:600;color:var(--muted);
+  display:flex;align-items:center;gap:6px;transition:.18s;
+}
+.chip.active{background:var(--primary);border-color:var(--primary);color:#fff}
+.chip:active{transform:scale(.95)}
+
+/* Category grid */
+.cat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:11px}
+.cat-card{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:16px 8px;display:flex;flex-direction:column;align-items:center;gap:8px;
+  text-align:center;transition:.18s;
+}
+.cat-card:hover{border-color:var(--primary);transform:translateY(-2px)}
+.cat-card .ci{font-size:26px;line-height:1}
+.cat-card .cn{font-size:11.5px;font-weight:700;line-height:1.25}
+
+/* ============================================================
+   APP DETAILS (full page overlay)
+   ============================================================ */
+.detail-page{
+  position:fixed;inset:0;z-index:120;background:var(--bg);overflow-y:auto;
+  transform:translateX(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);
+  -webkit-overflow-scrolling:touch;
+}
+.detail-page.open{transform:translateX(0)}
+.detail-top{
+  position:sticky;top:0;z-index:10;height:var(--header-h);display:flex;align-items:center;gap:10px;
+  padding:0 12px;background:color-mix(in srgb,var(--bg) 88%,transparent);
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid var(--border);
+}
+.detail-hero{padding:20px 14px 0;display:flex;gap:16px}
+.detail-icon{width:88px;height:88px;flex:0 0 88px;border-radius:22px;overflow:hidden;
+  background:var(--card-2);box-shadow:0 10px 26px rgba(0,0,0,.3)}
+.detail-icon img{width:100%;height:100%;object-fit:cover}
+.detail-title{font-size:20px;font-weight:800;margin:0 0 3px;letter-spacing:-.4px;line-height:1.25}
+.detail-dev{font-size:13px;color:var(--primary);font-weight:600;margin-bottom:7px}
+.detail-rating{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--muted)}
+.detail-actions{display:flex;gap:10px;padding:16px 14px}
+.detail-actions .btn{flex:1}
+.fav-btn{flex:0 0 48px !important;width:48px;padding:0}
+.stats-row{
+  display:grid;grid-template-columns:repeat(4,1fr);margin:6px 14px 0;
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;
+}
+.stat-cell{padding:12px 6px;text-align:center;border-right:1px solid var(--border)}
+.stat-cell:last-child{border-right:none}
+.stat-cell .sv{font-size:14px;font-weight:800;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stat-cell .sl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+.detail-body{padding:0 14px 40px}
+.block{margin-top:22px}
+.block h3{font-size:14.5px;font-weight:800;margin:0 0 10px;display:flex;align-items:center;gap:7px}
+.block p{margin:0;color:var(--muted);font-size:13.5px;line-height:1.75;white-space:pre-wrap}
+.shots{display:flex;gap:10px;overflow-x:auto;padding-bottom:8px;scrollbar-width:none}
+.shots::-webkit-scrollbar{display:none}
+.shots img{height:200px;border-radius:14px;border:1px solid var(--border);flex:0 0 auto;object-fit:cover}
+.feat-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:8px}
+.feat-list li{display:flex;gap:9px;font-size:13.5px;color:var(--muted);align-items:flex-start}
+.feat-list li::before{content:'✓';color:var(--success);font-weight:800;flex:0 0 auto}
+.tag-row{display:flex;flex-wrap:wrap;gap:7px}
+.tag{background:var(--card-2);border:1px solid var(--border);color:var(--muted);
+  font-size:11.5px;font-weight:600;padding:5px 11px;border-radius:999px}
+.info-list{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.info-row{display:flex;justify-content:space-between;gap:14px;padding:11px 14px;border-bottom:1px solid var(--border);font-size:13px}
+.info-row:last-child{border-bottom:none}
+.info-row .k{color:var(--muted);flex:0 0 auto}
+.info-row .v{font-weight:600;text-align:right;word-break:break-word}
+
+/* ============================================================
+   MODALS / SHEETS
+   ============================================================ */
+.overlay{
+  position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);
+  display:none;align-items:center;justify-content:center;padding:16px;
+}
+.overlay.open{display:flex;animation:fadeIn .2s}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal{
+  background:var(--bg-2);border:1px solid var(--border);border-radius:20px;
+  width:100%;max-width:440px;max-height:88vh;overflow-y:auto;box-shadow:var(--shadow);
+  animation:popIn .25s cubic-bezier(.34,1.4,.64,1);
+}
+@keyframes popIn{from{opacity:0;transform:scale(.94) translateY(14px)}to{opacity:1;transform:none}}
+.modal-head{
+  display:flex;align-items:center;justify-content:space-between;padding:16px 18px;
+  border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg-2);z-index:2;border-radius:20px 20px 0 0;
+}
+.modal-head h3{margin:0;font-size:16px;font-weight:800}
+.modal-body{padding:18px}
+.modal-foot{padding:14px 18px;border-top:1px solid var(--border);display:flex;gap:10px}
+.modal-foot .btn{flex:1}
+
+/* Forms */
+.field{margin-bottom:14px}
+.field label{display:block;font-size:12.5px;font-weight:700;margin-bottom:6px;color:var(--muted)}
+.input,textarea.input,select.input{
+  width:100%;height:44px;border-radius:12px;border:1px solid var(--border);
+  background:var(--card);padding:0 14px;outline:none;transition:.18s;
+}
+textarea.input{height:auto;padding:11px 14px;resize:vertical;min-height:88px;line-height:1.55}
+.input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(79,124,255,.14)}
+.input::placeholder{color:var(--muted);opacity:.75}
+
+/* ============================================================
+   MISC COMPONENTS
+   ============================================================ */
+.empty{
+  text-align:center;padding:52px 20px;color:var(--muted);
+}
+.empty .ei{font-size:44px;margin-bottom:12px;opacity:.55}
+.empty h4{margin:0 0 6px;font-size:15px;color:var(--text);font-weight:700}
+.empty p{margin:0;font-size:13px}
+
+.skeleton{
+  background:linear-gradient(90deg,var(--card) 25%,var(--card-2) 50%,var(--card) 75%);
+  background-size:200% 100%;animation:shimmer 1.4s infinite;border-radius:14px;
+}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+.loader-box{display:flex;flex-direction:column;align-items:center;gap:12px;padding:56px 20px;color:var(--muted)}
+.spinner{
+  width:34px;height:34px;border-radius:50%;border:3px solid var(--border);
+  border-top-color:var(--primary);animation:spin .8s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+#toastWrap{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--nav-h) + 20px);
+  z-index:400;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none;width:calc(100% - 32px);max-width:400px}
+.toast{
+  background:var(--card);border:1px solid var(--border);border-left:4px solid var(--primary);
+  padding:11px 15px;border-radius:12px;font-size:13px;font-weight:600;box-shadow:var(--shadow);
+  animation:toastIn .28s cubic-bezier(.34,1.4,.64,1);width:100%;
+}
+.toast.success{border-left-color:var(--success)}
+.toast.error{border-left-color:var(--danger)}
+.toast.warn{border-left-color:var(--warn)}
+@keyframes toastIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+.notif-item{
+  display:flex;gap:12px;padding:14px;background:var(--card);border:1px solid var(--border);
+  border-radius:var(--radius);margin-bottom:10px;position:relative;transition:.18s;
+}
+.notif-item.unread{border-color:var(--primary);background:linear-gradient(90deg,rgba(79,124,255,.08),var(--card))}
+.notif-item .ni-img{width:44px;height:44px;border-radius:12px;object-fit:cover;flex:0 0 44px;background:var(--card-2)}
+.notif-item .ni-ic{width:44px;height:44px;border-radius:12px;flex:0 0 44px;display:grid;place-items:center;
+  background:linear-gradient(135deg,var(--primary),var(--primary-2));font-size:20px}
+.notif-item h4{margin:0 0 4px;font-size:14px;font-weight:700}
+.notif-item p{margin:0;font-size:12.5px;color:var(--muted);line-height:1.6}
+.notif-item .nt{font-size:10.5px;color:var(--muted);margin-top:6px}
+.dot-unread{position:absolute;top:14px;right:14px;width:8px;height:8px;border-radius:50%;background:var(--primary)}
+
+.list-row{
+  display:flex;align-items:center;gap:12px;padding:12px;background:var(--card);
+  border:1px solid var(--border);border-radius:var(--radius);margin-bottom:9px;
+}
+.list-row .lr-icon{width:46px;height:46px;border-radius:13px;overflow:hidden;flex:0 0 46px;background:var(--card-2)}
+.list-row .lr-icon img{width:100%;height:100%;object-fit:cover}
+.list-row .lr-main{flex:1;min-width:0}
+.list-row .lr-main h4{margin:0 0 3px;font-size:13.5px;font-weight:700;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.list-row .lr-main p{margin:0;font-size:11.5px;color:var(--muted);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+.profile-head{
+  display:flex;flex-direction:column;align-items:center;gap:10px;padding:28px 16px 20px;text-align:center;
+}
+.profile-head .pv{
+  width:88px;height:88px;border-radius:50%;object-fit:cover;
+  background:linear-gradient(135deg,var(--primary),var(--primary-2));
+  display:grid;place-items:center;color:#fff;font-size:34px;font-weight:800;
+  box-shadow:0 10px 26px rgba(79,124,255,.3);
+}
+.profile-head h2{margin:0;font-size:19px;font-weight:800}
+.profile-head p{margin:0;font-size:13px;color:var(--muted)}
+.menu-list{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.menu-item{display:flex;align-items:center;gap:13px;padding:15px;border-bottom:1px solid var(--border);
+  font-size:14px;font-weight:600;transition:.15s;cursor:pointer;width:100%;text-align:left}
+.menu-item:last-child{border-bottom:none}
+.menu-item:hover{background:var(--card-2)}
+.menu-item .mi-ic{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;
+  background:var(--card-2);font-size:16px;flex:0 0 34px}
+.menu-item .chev{margin-left:auto;color:var(--muted);opacity:.6}
+
+.maintenance{
+  min-height:100vh;display:grid;place-items:center;text-align:center;padding:30px;
+}
+.maintenance .mi{font-size:60px;margin-bottom:16px}
+.maintenance h1{font-size:24px;margin:0 0 10px}
+.maintenance p{color:var(--muted);max-width:420px;margin:0 auto}
+
+.announce-bar{
+  background:linear-gradient(90deg,var(--primary),var(--primary-2));color:#fff;
+  font-size:12.5px;font-weight:600;padding:9px 16px;text-align:center;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media(min-width:768px){
+  body{padding-bottom:24px}
+  .bottom-nav{display:none}
+  .hdr-search{display:block}
+  .hscroll .app-card{flex:0 0 138px}
+  .grid{grid-template-columns:repeat(auto-fill,minmax(152px,1fr))}
+  .hero{padding:30px}
+  .hero-icon{width:112px;height:112px;flex:0 0 112px;border-radius:26px}
+  .hero-info h2{font-size:26px}
+  .detail-page{max-width:820px;margin:0 auto;border-left:1px solid var(--border);border-right:1px solid var(--border)}
+}
+@media(min-width:1024px){
+  .hscroll .app-card{flex:0 0 150px}
+  .grid{grid-template-columns:repeat(auto-fill,minmax(162px,1fr))}
+  .cat-grid{grid-template-columns:repeat(auto-fill,minmax(132px,1fr))}
+}
+@media(max-width:400px){
+  .hscroll .app-card{flex:0 0 104px}
+  .grid{grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:14px 10px}
+  .hero-icon{width:70px;height:70px;flex:0 0 70px;border-radius:18px}
+  .hero-info h2{font-size:16.5px}
+  .detail-icon{width:72px;height:72px;flex:0 0 72px;border-radius:18px}
+  .detail-title{font-size:17px}
+}
+</style>
+</head>
+<body>
+<script src="https://pl31754613.profitableratecpmnetwork.com/6a/a5/47/6aa5476db220341f92a6462f6a975e1b.js"></script>
+
+<!-- ============================ ANNOUNCEMENT BAR ============================ -->
+<div id="announceBar" class="announce-bar" style="display:none"></div>
+
+<!-- ============================ HEADER ============================ -->
+<header class="header">
+  <div class="hdr-inner">
+    <div class="brand" onclick="go('home')">
+      <span id="brandLogo"></span>
+      <span class="brand-name" id="brandName">APK DOKAN<span>
+    </div>
+<script>
+  atOptions = {
+    'key' : '0c299a54c7c7c5196f8663a214d399e8',
+    'format' : 'iframe',
+    'height' : 250,
+    'width' : 300,
+    'params' : {}
+  };
+</script>
+
+    <div class="hdr-search">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input id="searchInput" type="text" placeholder="অ্যাপ, ডেভেলপার, ক্যাটাগরি খুঁজুন..." autocomplete="off">
+    </div>
+
+    <div class="hdr-actions">
+      <button class="icon-btn" onclick="go('search')" title="Search">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      </button>
+      <button class="icon-btn" onclick="go('notifications')" title="Notifications">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+        <span class="badge" id="notifBadge">0</span>
+      </button>
+      <button class="icon-btn avatar-btn" onclick="go('profile')" title="Profile">
+        <span id="hdrAvatar"></span>
+      </button>
+      <button class="icon-btn" onclick="toggleTheme()" title="Theme">
+        <svg id="themeIcon" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+<script>
+  atOptions = {
+    'key' : '0a01857a0b42c47b99ed9be001d85b53',
+    'format' : 'iframe',
+    'height' : 50,
+    'width' : 320,
+    'params' : {}
+  };
+</script>
+<script src="https://www.highrevenueformat.com/0a01857a0b42c47b99ed9be001d85b53/invoke.js"></script>
+<!-- ============================ MAIN ============================ -->
+<main class="wrap">
+  <!-- HOME -->
+  <section id="view-home" class="view active">
+    <div id="heroArea"></div>
+    <div id="homeContent"></div>
+  </section>
+
+  <!-- SEARCH -->
+  <section id="view-search" class="view">
+    <div class="section">
+      <div class="section-head"><h2 class="section-title">🔍 সার্চ</h2></div>
+      <div class="hdr-search" style="display:block;max-width:100%;margin-bottom:14px">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input id="searchInputMobile" type="text" placeholder="অ্যাপ, ডেভেলপার, ট্যাগ খুঁজুন..." autocomplete="off">
+      </div>
+      <div id="searchFilters" class="chips" style="margin-bottom:14px"></div>
+      <div id="searchResults"></div>
+    </div>
+  </section>
+
+  <!-- CATEGORIES -->
+  <section id="view-categories" class="view">
+    <div class="section">
+      <div class="section-head"><h2 class="section-title">📂 ক্যাটাগরি</h2></div>
+      <div id="categoryGrid" class="cat-grid"></div>
+    </div>
+    <div class="section" id="categoryAppsSection" style="display:none">
+      <div class="section-head">
+        <h2 class="section-title" id="categoryAppsTitle"></h2>
+        <button class="see-all" onclick="clearCategory()">✕ বন্ধ করুন</button>
+      </div>
+      <div id="categoryApps" class="grid"></div>
+    </div>
+  </section>
+
+  <!-- FAVORITES -->
+  <section id="view-favorites" class="view">
+    <div class="section">
+      <div class="section-head"><h2 class="section-title">⭐ ফেভারিট</h2></div>
+      <div id="favoritesContent"></div>
+    </div>
+  </section>
+
+  <!-- NOTIFICATIONS -->
+  <section id="view-notifications" class="view">
+    <div class="section">
+      <div class="section-head">
+        <h2 class="section-title">🔔 নোটিফিকেশন</h2>
+        <button class="see-all" onclick="markAllRead()">সব পড়া হয়েছে</button>
+      </div>
+      <div id="notifContent"></div>
+    </div>
+  </section>
+
+  <!-- SUPPORT -->
+  <section id="view-support" class="view">
+    <div class="section">
+      <div class="section-head"><h2 class="section-title">📩 সাপোর্ট / যোগাযোগ</h2></div>
+      <div class="modal" style="max-width:100%;animation:none">
+        <div class="modal-body">
+          <div class="field"><label>আপনার নাম</label><input id="supName" class="input" placeholder="নাম লিখুন"></div>
+          <div class="field"><label>ইমেইল</label><input id="supEmail" class="input" type="email" placeholder="you@example.com"></div>
+          <div class="field"><label>বিষয়</label><input id="supSubject" class="input" placeholder="বিষয় লিখুন"></div>
+          <div class="field"><label>বার্তা</label><textarea id="supMessage" class="input" placeholder="আপনার সমস্যা বা প্রশ্ন বিস্তারিত লিখুন..."></textarea></div>
+          <button class="btn btn-primary btn-block" id="supSubmit" onclick="submitSupport()">বার্তা পাঠান</button>
+        </div>
+      </div>
+      <div id="supportInfo" style="margin-top:18px"></div>
+    </div>
+  </section>
+
+  <!-- PROFILE -->
+  <section id="view-profile" class="view">
+    <div id="profileContent"></div>
+  </section>
+
+  <!-- DOWNLOAD HISTORY -->
+  <section id="view-history" class="view">
+    <div class="section">
+      <div class="section-head">
+        <h2 class="section-title">📥 ডাউনলোড হিস্ট্রি</h2>
+        <button class="see-all" onclick="go('profile')">← ফিরে যান</button>
+      </div>
+      <div id="historyContent"></div>
+    </div>
+  </section>
+<script>
+  atOptions = {
+    'key' : '0a01857a0b42c47b99ed9be001d85b53',
+    'format' : 'iframe',
+    'height' : 50,
+    'width' : 320,
+    'params' : {}
+  };
+</script>
+<script src="https://www.highrevenueformat.com/0a01857a0b42c47b99ed9be001d85b53/invoke.js"></script>
+  <!-- MY REPORTS -->
+  <section id="view-reports" class="view">
+    <div class="section">
+      <div class="section-head">
+        <h2 class="section-title">🚨 আমার রিপোর্ট</h2>
+        <button class="see-all" onclick="go('profile')">← ফিরে যান</button>
+      </div>
+      <div id="myReportsContent"></div>
+    </div>
+  </section>
+</main>
+
+<!-- ============================ BOTTOM NAV ============================ -->
+<nav class="bottom-nav">
+  <button class="nav-item active" data-nav="home" onclick="go('home')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 10 9-7 9 7v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg>
+    <span>হোম</span>
+  </button>
+  <button class="nav-item" data-nav="categories" onclick="go('categories')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+    <span>ক্যাটাগরি</span>
+  </button>
+  <button class="nav-item" data-nav="search" onclick="go('search')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+    <span>সার্চ</span>
+  </button>
+  <button class="nav-item" data-nav="favorites" onclick="go('favorites')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1L12 21.2l7.7-7.8 1.1-1a5.5 5.5 0 0 0 0-7.8Z"/></svg>
+    <span>ফেভারিট</span>
+  </button>
+  <button class="nav-item" data-nav="profile" onclick="go('profile')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+    <span>প্রোফাইল</span>
+  </button>
+</nav>
+
+<!-- ============================ APP DETAIL PAGE ============================ -->
+<div class="detail-page" id="detailPage">
+  <div class="detail-top">
+    <button class="icon-btn" onclick="closeDetail()">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+    </button>
+    <strong style="font-size:15px" id="detailTopTitle">App Details</strong>
+    <button class="icon-btn" style="margin-left:auto" onclick="shareApp()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg>
+    </button>
+  </div>
+  <div id="detailContent"></div>
+</div>
+
+<!-- ============================ GENERIC MODAL ============================ -->
+<div class="overlay" id="modalOverlay">
+  <div class="modal" id="modalBox"></div>
+</div>
+
+<!-- ============================ CONFIRM MODAL ============================ -->
+<div class="overlay" id="confirmOverlay">
+  <div class="modal" style="max-width:380px">
+    <div class="modal-head"><h3 id="confirmTitle">নিশ্চিত করুন</h3></div>
+    <div class="modal-body"><p id="confirmMsg" style="margin:0;color:var(--muted);font-size:13.5px;line-height:1.7"></p></div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeConfirm(false)">বাতিল</button>
+      <button class="btn btn-danger" id="confirmOk">হ্যাঁ, নিশ্চিত</button>
+    </div>
+  </div>
+</div>
+<script src="https://pl31754613.profitableratecpmnetwork.com/6a/a5/47/6aa5476db220341f92a6462f6a975e1b.js"></script>
+<!-- ============================ TOASTS ============================ -->
+<div id="toastWrap"></div>
+
+<!-- ============================ FIREBASE SDK ============================ -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="firebase-config.js"></script>
+
+<script>
+/* ================================================================
+   APPVERSE — USER PANEL LOGIC
+   ================================================================ */
+const db   = window.db;
+const auth = window.auth;
+
+/* ---------------- GLOBAL STATE ---------------- */
+const STATE = {
+  apps: {},           // appId -> app object
+  categories: {},     // catId -> category object
+  settings: {},       // store settings
+  notifications: {},  // notifId -> notification
+  favorites: {},      // appId -> true
+  downloads: [],      // user's download history
+  reports: [],        // user's reports
+  user: null,
+  profile: null,
+  view: 'home',
+  activeCategory: null,
+  searchQuery: '',
+  searchFilter: 'all',
+  loaded: { apps:false, cats:false, settings:false, notifs:false }
+};
+
+/* ---------------- SHORTCUTS ---------------- */
+const $  = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+
+/* ---------------- UTILITIES ---------------- */
+function esc(s){
+  return String(s == null ? '' : s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+function initials(name){
+  if(!name) return 'U';
+  return name.trim().split(/\s+/).slice(0,2).map(w=>w[0]).join('').toUpperCase();
+}
+function fmtNum(n){
+  n = Number(n)||0;
+  if(n >= 1000000) return (n/1000000).toFixed(1).replace(/\.0$/,'') + 'M';
+  if(n >= 1000)    return (n/1000).toFixed(1).replace(/\.0$/,'') + 'K';
+  return String(n);
+}
+function fmtDate(ts){
+  if(!ts) return '—';
+  const d = new Date(ts);
+  if(isNaN(d)) return '—';
+  const diff = Date.now() - d.getTime();
+  const m = Math.floor(diff/60000), h = Math.floor(diff/3600000), day = Math.floor(diff/86400000);
+  if(m < 1)   return 'এখনই';
+  if(m < 60)  return m + ' মিনিট আগে';
+  if(h < 24)  return h + ' ঘণ্টা আগে';
+  if(day < 30) return day + ' দিন আগে';
+  return d.toLocaleDateString('bn-BD', {day:'numeric', month:'short', year:'numeric'});
+}
+function fmtBytes(str){
+  if(!str) return '—';
+  return String(str);
+}
+
+
+/* ---------------- TOAST ---------------- */
+function toast(msg, type){
+  const wrap = $('#toastWrap');
+  const el = document.createElement('div');
+  el.className = 'toast ' + (type || '');
+  el.textContent = msg;
+  wrap.appendChild(el);
+  setTimeout(()=>{
+    el.style.transition = 'opacity .25s, transform .25s';
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(10px)';
+    setTimeout(()=>el.remove(), 260);
+  }, 2800);
+}
+
+/* ---------------- CONFIRM ---------------- */
+let _confirmResolve = null;
+function confirmDialog(title, msg){
+  $('#confirmTitle').textContent = title || 'নিশ্চিত করুন';
+  $('#confirmMsg').textContent = msg || '';
+  $('#confirmOverlay').classList.add('open');
+  return new Promise(res => { _confirmResolve = res; });
+}
+function closeConfirm(v){
+  $('#confirmOverlay').classList.remove('open');
+  if(_confirmResolve){ _confirmResolve(v); _confirmResolve = null; }
+}
+$('#confirmOk').addEventListener('click', ()=>closeConfirm(true));
+
+/* ---------------- MODAL ---------------- */
+function openModal(html){
+  $('#modalBox').innerHTML = html;
+  $('#modalOverlay').classList.add('open');
+}
+function closeModal(){ $('#modalOverlay').classList.remove('open'); $('#modalBox').innerHTML=''; }
+$('#modalOverlay').addEventListener('click', e=>{ if(e.target.id === 'modalOverlay') closeModal(); });
+
+/* ---------------- THEME ---------------- */
+function applyTheme(t){
+  document.documentElement.setAttribute('data-theme', t);
+  try{ localStorage.setItem('av_theme', t); }catch(e){}
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if(meta) meta.setAttribute('content', t === 'dark' ? '#0e1014' : '#f4f6fb');
+  $('#themeIcon').innerHTML = t === 'dark'
+    ? '<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/>'
+    : '<circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>';
+}
+function toggleTheme(){
+  const cur = document.documentElement.getAttribute('data-theme');
+  applyTheme(cur === 'dark' ? 'light' : 'dark');
+}
+(function initTheme(){
+  let t = 'dark';
+  try{ t = localStorage.getItem('av_theme') || 'dark'; }catch(e){}
+  applyTheme(t);
+})();
+
+/* ================================================================
+   ROUTER
+   ================================================================ */
+function go(view, param){
+  STATE.view = view;
+  $$('.view').forEach(v => v.classList.remove('active'));
+  const el = document.getElementById('view-' + view);
+  if(el) el.classList.add('active');
+  $$('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.nav === view));
+
+  if(view === 'home')          renderHome();
+  if(view === 'search')        { renderSearchFilters(); renderSearchResults(); setTimeout(()=>{ const i=$('#searchInputMobile'); if(i && window.innerWidth<768) i.focus(); },80); }
+  if(view === 'categories')    renderCategoryGrid();
+  if(view === 'favorites')     renderFavorites();
+  if(view === 'notifications') renderNotifications();
+  if(view === 'profile')       renderProfile();
+  if(view === 'history')       renderHistory();
+  if(view === 'reports')       renderMyReports();
+  if(view === 'support')       renderSupportInfo();
+
+  window.scrollTo({ top:0, behavior:'smooth' });
+  closeDetail();
+  try{ history.replaceState(null,'','#'+view); }catch(e){}
+}
+
+/* ================================================================
+   SETTINGS / BRANDING
+   ================================================================ */
+function applySettings(){
+  const s = STATE.settings || {};
+  const name = s.storeName || 'PLABON FFX';
+  $('#brandName').textContent = name;
+  document.title = name + ' — Android App Store';
+
+  const logo = s.logoUrl;
+  $('#brandLogo').innerHTML = logo
+    ? `<img src="${esc(logo)}" alt="" onerror="this.outerHTML='<span class=\\'logo-fallback\\'>${esc(name[0]||'A')}</span>'">`
+    : `<span class="logo-fallback">${esc((name[0]||'A').toUpperCase())}</span>`;
+
+  // Announcement
+  const bar = $('#announceBar');
+  if(s.announcement && s.announcement.trim()){
+    bar.style.display = 'flex';
+    bar.innerHTML = '📢 ' + esc(s.announcement);
+  } else {
+    bar.style.display = 'none';
+  }
+
+  // Maintenance mode
+  if(s.maintenance === true){
+    // Admins bypass — we check async; for simplicity show gate to everyone except logged-in admin flag
+    const isAdminBypass = sessionStorage.getItem('av_admin_bypass') === '1';
+    if(!isAdminBypass){
+      document.body.innerHTML = `
+        <div class="maintenance">
+          <div>
+            <div class="mi">🛠️</div>
+            <h1>${esc(name)} — মেইনটেন্যান্স</h1>
+            <p>আমরা কিছু উন্নয়নের কাজ করছি। অনুগ্রহ করে কিছুক্ষণ পর আবার চেষ্টা করুন।</p>
+            <p style="margin-top:16px;font-size:12px">${esc(s.supportEmail||'')}</p>
+          </div>
+        </div>`;
+      return true;
+    }
+  }
+  return false;
+}
+
+/* ================================================================
+   FIREBASE DATA LISTENERS
+   ================================================================ */
+function listenSettings(){
+  db.ref('settings/store').on('value', snap => {
+    STATE.settings = snap.val() || {};
+    STATE.loaded.settings = true;
+    if(!applySettings()) { renderHome(); renderProfile(); }
+  }, err => {
+    console.warn('settings error', err);
+    STATE.loaded.settings = true;
+    renderHome();
+  });
+}
+
+function listenCategories(){
+  db.ref('categories').on('value', snap => {
+    STATE.categories = snap.val() || {};
+    STATE.loaded.cats = true;
+    renderCategoryGrid();
+    renderSearchFilters();
+    if(STATE.view === 'home') renderHome();
+  }, err => console.warn('cat error', err));
+}
+
+function listenApps(){
+  db.ref('apps').on('value', snap => {
+    STATE.apps = snap.val() || {};
+    STATE.loaded.apps = true;
+    if(STATE.view === 'home') renderHome();
+    if(STATE.view === 'search') renderSearchResults();
+    if(STATE.view === 'favorites') renderFavorites();
+    if(STATE.view === 'categories' && STATE.activeCategory) renderCategoryApps(STATE.activeCategory);
+  }, err => {
+    console.warn('apps error', err);
+    STATE.loaded.apps = true;
+    renderHome();
+  });
+}
+
+function listenNotifications(){
+  db.ref('notifications').on('value', snap => {
+    STATE.notifications = snap.val() || {};
+    STATE.loaded.notifs = true;
+    updateNotifBadge();
+    if(STATE.view === 'notifications') renderNotifications();
+  }, err => console.warn('notif error', err));
+}
+
+/* ================================================================
+   HELPERS: published apps, sorting
+   ================================================================ */
+function publishedApps(){
+  return Object.entries(STATE.apps)
+    .map(([id,a]) => ({ id, ...a }))
+    .filter(a => a.published !== false);
+}
+function sortByCreated(list){
+  return list.slice().sort((a,b) => (b.createdAt||0) - (a.createdAt||0));
+}
+function sortByUpdated(list){
+  return list.slice().sort((a,b) => (b.updatedAt||b.createdAt||0) - (a.updatedAt||a.createdAt||0));
+}
+function sortByDownloads(list){
+  return list.slice().sort((a,b) => (b.downloads||0) - (a.downloads||0));
+}
+function sortByRating(list){
+  return list.slice().sort((a,b) => (Number(b.rating)||0) - (Number(a.rating)||0));
+}
+function byCategory(list, catName){
+  return list.filter(a => (a.category||'').toLowerCase() === (catName||'').toLowerCase());
+}
+function matchesTag(list, tags){
+  return list.filter(a => {
+    const t = ((a.tags||'') + ' ' + (a.category||'')).toLowerCase();
+    return tags.some(x => t.includes(x));
+  });
+}
+
+/* ================================================================
+   APP CARD RENDERER
+   ================================================================ */
+function appCardHTML(app, opts){
+  opts = opts || {};
+  const icon = app.icon
+    ? `<img src="${esc(app.icon)}" alt="${esc(app.name)}" loading="lazy" onerror="this.style.display='none';this.parentNode.innerHTML='<div class=\\'ph\\'>${esc((app.name||'A')[0].toUpperCase())}</div>'">`
+    : `<div class="ph">${esc((app.name||'A')[0].toUpperCase())}</div>`;
+
+  let floatTag = '';
+  if(app.trending)      floatTag = '<span class="tag-float hot">🔥 Hot</span>';
+  else if(app.featured) floatTag = '<span class="tag-float">★ Featured</span>';
+  else if(app.createdAt && (Date.now() - app.createdAt) < 14*86400000) floatTag = '<span class="tag-float new">New</span>';
+
+  const rating = Number(app.rating)||0;
+
+  return `
+    <div class="app-card" onclick="openApp('${esc(app.id)}')">
+      <div class="thumb">${icon}${floatTag}</div>
+      <div class="nm">${esc(app.name||'Untitled')}</div>
+      <div class="meta">
+        <span class="star">★</span><span>${rating? rating.toFixed(1):'—'}</span>
+        <span>•</span><span>${fmtNum(app.downloads||0)}</span>
+      </div>
+    </div>`;
+}
+
+function appGridHTML(list, emptyMsg){
+  if(!list.length){
+    return `<div class="empty"><div class="ei">📭</div><h4>কিছু পাওয়া যায়নি</h4><p>${esc(emptyMsg||'এই মুহূর্তে কোনো অ্যাপ নেই।')}</p></div>`;
+  }
+  return `<div class="grid">${list.map(a=>appCardHTML(a)).join('')}</div>`;
+}
+
+function appRowHTML(app){
+  const icon = app.icon
+    ? `<img src="${esc(app.icon)}" alt="" loading="lazy" onerror="this.style.display='none'">`
+    : `<div style="width:100%;height:100%;display:grid;place-items:center;background:linear-gradient(135deg,var(--primary),var(--primary-2));color:#fff;font-weight:800">${esc((app.name||'A')[0].toUpperCase())}</div>`;
+  return `
+    <div class="list-row" onclick="openApp('${esc(app.id)}')" style="cursor:pointer">
+      <div class="lr-icon">${icon}</div>
+      <div class="lr-main">
+        <h4>${esc(app.name||'Untitled')}</h4>
+        <p>${esc(app.developer||'Unknown')} • ★ ${(Number(app.rating)||0).toFixed(1)} • ${fmtNum(app.downloads||0)} ডাউনলোড</p>
+      </div>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+    </div>`;
+}
+
+function hscrollSection(title, icon, list, seeAllCat){
+  if(!list.length) return '';
+  const seeAll = seeAllCat
+    ? `<button class="see-all" onclick="openCategory('${esc(seeAllCat)}')">সব দেখুন →</button>`
+    : `<button class="see-all" onclick="go('search')">সব দেখুন →</button>`;
+  return `
+    <div class="section">
+      <div class="section-head">
+        <h2 class="section-title">${icon} ${esc(title)}</h2>
+        ${seeAll}
+      </div>
+      <div class="hscroll">${list.slice(0,12).map(a=>appCardHTML(a)).join('')}</div>
+    </div>`;
+}
+
+/* ================================================================
+   HOME RENDER
+   ================================================================ */
+function renderHome(){
+  if(!STATE.loaded.apps || !STATE.loaded.settings){
+    $('#heroArea').innerHTML = '';
+    $('#homeContent').innerHTML = `
+      <div class="section">
+        <div class="skeleton" style="height:150px;border-radius:22px;margin-top:16px"></div>
+        <div style="display:flex;gap:12px;margin-top:20px;overflow:hidden">
+          ${Array(5).fill(0).map(()=>`<div class="skeleton" style="width:118px;height:118px;flex:0 0 118px"></div>`).join('')}
+        </div>
+        <div style="display:flex;gap:12px;margin-top:20px;overflow:hidden">
+          ${Array(5).fill(0).map(()=>`<div class="skeleton" style="width:118px;height:118px;flex:0 0 118px"></div>`).join('')}
+        </div>
+      </div>`;
+    return;
+  }
+
+  const all = publishedApps();
+
+  if(!all.length){
+    $('#heroArea').innerHTML = '';
+    $('#homeContent').innerHTML = `
+      <div class="empty" style="padding-top:70px">
+        <div class="ei">🚀</div>
+        <h4>স্টোরে এখনো কোনো অ্যাপ নেই</h4>
+        <p>অ্যাডমিন প্যানেল থেকে অ্যাপ যোগ করা হলে এখানে দেখা যাবে।</p>
+      </div>`;
+    return;
+  }
+
+  /* ---- HERO: featured / trending / newest ---- */
+  const heroPool = all.filter(a=>a.featured);
+  const hero = (heroPool.length ? sortByRating(heroPool) : sortByDownloads(all))[0];
+
+  $('#heroArea').innerHTML = hero ? `
+    <div class="hero">
+      <div class="hero-inner">
+        <div class="hero-icon" onclick="openApp('${esc(hero.id)}')" style="cursor:pointer">
+          ${hero.icon
+            ? `<img src="${esc(hero.icon)}" alt="" onerror="this.parentNode.innerHTML='<div style=\\'width:100%;height:100%;display:grid;place-items:center;font-size:34px;font-weight:800;color:#fff;background:linear-gradient(135deg,#4f7cff,#8b5cf6)\\'>${esc((hero.name||'A')[0].toUpperCase())}</div>'">`
+            : `<div style="width:100%;height:100%;display:grid;place-items:center;font-size:34px;font-weight:800;color:#fff;background:linear-gradient(135deg,#4f7cff,#8b5cf6)">${esc((hero.name||'A')[0].toUpperCase())}</div>`}
+        </div>
+        <div class="hero-info">
+          <span class="hero-badge">${hero.featured ? '★ Featured' : '🔥 Top Pick'}</span>
+          <h2>${esc(hero.name||'Untitled')}</h2>
+          <p>${esc(hero.shortDesc || hero.description || 'এই অ্যাপটি এখন স্টোরে ট্রেন্ডিং করছে।')}</p>
+          <div class="hero-stats">
+            <span>★ <b>${(Number(hero.rating)||0).toFixed(1)}</b></span>
+            <span>⬇ <b>${fmtNum(hero.downloads||0)}</b></span>
+            <span>💾 <b>${esc(hero.size||'—')}</b></span>
+          </div>
+          <div style="display:flex;gap:9px;flex-wrap:wrap">
+            <button class="btn btn-primary btn-sm" onclick="event.stopPropagation();openApp('${esc(hero.id)}')">বিস্তারিত দেখুন</button>
+            <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();downloadApp('${esc(hero.id)}')">⬇ ডাউনলোড</button>
+          </div>
+        </div>
+      </div>
+    </div>` : '';
+
+  /* ---- SECTIONS ---- */
+  const trending  = all.filter(a=>a.trending);
+  const featured  = all.filter(a=>a.featured);
+  const recent    = sortByCreated(all);
+  const updated   = sortByUpdated(all).filter(a=>a.updatedAt);
+  const popular   = sortByDownloads(all);
+  const games     = byCategory(all, 'Games');
+  const tools     = byCategory(all, 'Tools');
+  const aiApps    = byCategory(all, 'AI');
+
+  let html = '';
+
+  // Category chips
+  const cats = Object.entries(STATE.categories)
+    .map(([id,c])=>({id,...c}))
+    .sort((a,b)=>(a.order||0)-(b.order||0));
+  if(cats.length){
+    html += `
+      <div class="section" style="margin-top:22px">
+        <div class="chips">
+          ${cats.slice(0,14).map(c=>`<button class="chip" onclick="openCategory('${esc(c.name)}')">${esc(c.icon||'📦')} ${esc(c.name)}</button>`).join('')}
+        </div>
+      </div>`;
+  }
+
+  html += hscrollSection('ট্রেন্ডিং অ্যাপ', '🔥', trending.length ? trending : popular);
+  html += hscrollSection('ফিচার্ড অ্যাপ', '⭐', featured.length ? featured : sortByRating(all));
+  html += hscrollSection('সদ্য যোগ হয়েছে', '🆕', recent);
+  if(updated.length) html += hscrollSection('সদ্য আপডেট হয়েছে', '🔄', updated);
+  html += hscrollSection('জনপ্রিয় অ্যাপ', '📱', popular);
+  if(games.length)  html += hscrollSection('জনপ্রিয় গেমস', '🎮', games, 'Games');
+  if(tools.length)  html += hscrollSection('টুলস', '🛠️', tools, 'Tools');
+  if(aiApps.length) html += hscrollSection('AI অ্যাপস', '🤖', aiApps, 'AI');
+
+  // All apps grid at bottom
+  if(all.length){
+    html += `
+      <div class="section">
+        <div class="section-head">
+          <h2 class="section-title">🗂️ সব অ্যাপ</h2>
+          <button class="see-all" onclick="go('search')">সব দেখুন →</button>
+        </div>
+        <div class="grid">${sortByCreated(all).slice(0,18).map(a=>appCardHTML(a)).join('')}</div>
+      </div>`;
+  }
+
+  $('#homeContent').innerHTML = html;
+}
+
+/* ================================================================
+   CATEGORIES
+   ================================================================ */
+function renderCategoryGrid(){
+  const cats = Object.entries(STATE.categories)
+    .map(([id,c])=>({id,...c}))
+    .sort((a,b)=>(a.order||0)-(b.order||0));
+
+  const all = publishedApps();
+  if(!cats.length){
+    $('#categoryGrid').innerHTML = `<div class="empty" style="grid-column:1/-1"><div class="ei">📂</div><h4>কোনো ক্যাটাগরি নেই</h4><p>অ্যাডমিন প্যানেল থেকে ক্যাটাগরি তৈরি করুন।</p></div>`;
+    return;
+  }
+  $('#categoryGrid').innerHTML = cats.map(c => {
+    const count = byCategory(all, c.name).length;
+    return `
+      <div class="cat-card" onclick="openCategory('${esc(c.name)}')">
+        <div class="ci">${esc(c.icon||'📦')}</div>
+        <div class="cn">${esc(c.name)}</div>
+        <div style="font-size:10px;color:var(--muted)">${count} টি</div>
+      </div>`;
+  }).join('');
+}
+
+function openCategory(name){
+  STATE.activeCategory = name;
+  if(STATE.view !== 'categories') go('categories');
+  renderCategoryApps(name);
+  setTimeout(()=>{
+    const el = document.getElementById('categoryAppsSection');
+    if(el) el.scrollIntoView({behavior:'smooth', block:'start'});
+  }, 120);
+}
+function clearCategory(){
+  STATE.activeCategory = null;
+  $('#categoryAppsSection').style.display = 'none';
+}
+function renderCategoryApps(name){
+  const list = byCategory(publishedApps(), name);
+  $('#categoryAppsSection').style.display = 'block';
+  $('#categoryAppsTitle').textContent = '📂 ' + name;
+  $('#categoryApps').innerHTML = list.length
+    ? list.map(a=>appCardHTML(a)).join('')
+    : `<div class="empty" style="grid-column:1/-1"><div class="ei">📭</div><h4>এই ক্যাটাগরিতে কোনো অ্যাপ নেই</h4></div>`;
+}
+
+/* ================================================================
+   SEARCH
+   ================================================================ */
+function renderSearchFilters(){
+  const cats = Object.entries(STATE.categories).map(([id,c])=>({id,...c})).sort((a,b)=>(a.order||0)-(b.order||0));
+  const el = $('#searchFilters');
+  el.innerHTML = `<button class="chip ${STATE.searchFilter==='all'?'active':''}" onclick="setSearchFilter('all')">সব</button>` +
+    cats.map(c=>`<button class="chip ${STATE.searchFilter===c.name?'active':''}" onclick="setSearchFilter('${esc(c.name)}')">${esc(c.icon||'📦')} ${esc(c.name)}</button>`).join('');
+}
+function setSearchFilter(f){
+  STATE.searchFilter = f;
+  renderSearchFilters();
+  renderSearchResults();
+}
+function doSearch(q){
+  STATE.searchQuery = q;
+  renderSearchResults();
+}
+function searchApps(q, filter){
+  let list = publishedApps();
+  if(filter && filter !== 'all') list = list.filter(a => (a.category||'') === filter);
+  if(!q || !q.trim()) return sortByDownloads(list);
+  const terms = q.toLowerCase().trim().split(/\s+/);
+  return list.map(a => {
+    const hay = [
+      a.name, a.developer, a.category, a.tags, a.packageName,
+      a.description, a.shortDesc, a.features, a.whatsNew
+    ].join(' ').toLowerCase();
+    let score = 0;
+    terms.forEach(t=>{
+      if(!hay.includes(t)) return;
+      const nm = (a.name||'').toLowerCase();
+      if(nm === t) score += 100;
+      else if(nm.startsWith(t)) score += 50;
+      else if(nm.includes(t)) score += 25;
+      if((a.developer||'').toLowerCase().includes(t)) score += 12;
+      if((a.category||'').toLowerCase().includes(t)) score += 10;
+      if((a.tags||'').toLowerCase().includes(t)) score += 8;
+      score += 3;
+    });
+    return { app:a, score };
+  }).filter(x => x.score > 0)
+    .sort((a,b) => b.score - a.score || (b.app.downloads||0)-(a.app.downloads||0))
+    .map(x => x.app);
+}
+function renderSearchResults(){
+  const q = STATE.searchQuery || '';
+  const results = searchApps(q, STATE.searchFilter);
+  const el = $('#searchResults');
+
+  if(!q.trim() && STATE.searchFilter === 'all'){
+    // Show suggestions instead of empty
+    const recent = sortByCreated(publishedApps()).slice(0,12);
+    el.innerHTML = `
+      <div class="section-head" style="margin-top:6px"><h3 class="section-title" style="font-size:14px">🔥 জনপ্রিয় খোঁজ</h3></div>
+      <div class="tag-row" style="margin-bottom:16px">
+        ${['Games','AI','Tools','Education','Photography','Music','Video','Security','Finance','Social']
+          .map(t=>`<button class="tag" style="cursor:pointer" onclick="setSearchText('${t}')">${t}</button>`).join('')}
+      </div>
+      <div class="section-head"><h3 class="section-title" style="font-size:14px">🆕 নতুন অ্যাপ</h3></div>
+      ${appGridHTML(recent)}`;
+    return;
+  }
+
+  el.innerHTML = `
+    <div style="font-size:12.5px;color:var(--muted);margin-bottom:12px">
+      ${results.length} টি ফলাফল পাওয়া গেছে ${q.trim() ? `"<b style="color:var(--text)">${esc(q)}</b>"` : ''}
+    </div>
+    ${appGridHTML(results, 'আপনার সার্চের সাথে মিলে এমন কোনো অ্যাপ নেই।')}`;
+}
+function setSearchText(t){
+  STATE.searchQuery = t;
+  const a = $('#searchInput');       if(a) a.value = t;
+  const b = $('#searchInputMobile'); if(b) b.value = t;
+  renderSearchResults();
+}
+
+/* Debounced search inputs */
+(function bindSearch(){
+  const a = $('#searchInput');
+  const b = $('#searchInputMobile');
+  let timer;
+  function handler(e){
+    const v = e.target.value;
+    if(a && a !== e.target) a.value = v;
+    if(b && b !== e.target) b.value = v;
+    clearTimeout(timer);
+    timer = setTimeout(()=>{
+      STATE.searchQuery = v;
+      if(STATE.view !== 'search') go('search');
+      else renderSearchResults();
+    }, 220);
+  }
+  if(a) a.addEventListener('input', handler);
+  if(b) b.addEventListener('input', handler);
+})();
+
+/* ================================================================
+   APP DETAILS PAGE
+   ================================================================ */
+let _currentDetailApp = null;
+
+function openApp(appId){
+  const app = STATE.apps[appId];
+  if(!app){ toast('অ্যাপটি পাওয়া যায়নি', 'error'); return; }
+  _currentDetailApp = { id: appId, ...app };
+
+  // increment view counter (fire and forget, once per session per app)
+  const seenKey = 'av_viewed_' + appId;
+  if(!sessionStorage.getItem(seenKey)){
+    sessionStorage.setItem(seenKey, '1');
+    db.ref('apps/' + appId + '/views').transaction(c => (c||0) + 1).catch(()=>{});
+  }
+
+  renderDetail(_currentDetailApp);
+  $('#detailPage').classList.add('open');
+  $('#detailPage').scrollTop = 0;
+  document.body.style.overflow = 'hidden';
+}
+function closeDetail(){
+  $('#detailPage').classList.remove('open');
+  document.body.style.overflow = '';
+  _currentDetailApp = null;
+}
+function shareApp(){
+  if(!_currentDetailApp) return;
+  const url = location.origin + location.pathname + '#app=' + _currentDetailApp.id;
+  if(navigator.share){
+    navigator.share({ title:_currentDetailApp.name, text:_currentDetailApp.shortDesc||'', url }).catch(()=>{});
+  } else {
+    navigator.clipboard?.writeText(url).then(()=>toast('লিংক কপি হয়েছে','success')).catch(()=>toast('কপি করা যায়নি','error'));
+  }
+}
+
+function renderDetail(app){
+  $('#detailTopTitle').textContent = app.name || 'App Details';
+
+  const isFav = !!STATE.favorites[app.id];
+  const rating = Number(app.rating)||0;
+
+  const iconHTML = app.icon
+    ? `<img src="${esc(app.icon)}" alt="" onerror="this.parentNode.innerHTML='<div style=\\'width:100%;height:100%;display:grid;place-items:center;font-size:36px;font-weight:800;color:#fff;background:linear-gradient(135deg,#4f7cff,#8b5cf6)\\'>${esc((app.name||'A')[0].toUpperCase())}</div>'">`
+    : `<div style="width:100%;height:100%;display:grid;place-items:center;font-size:36px;font-weight:800;color:#fff;background:linear-gradient(135deg,#4f7cff,#8b5cf6)">${esc((app.name||'A')[0].toUpperCase())}</div>`;
+
+  const shots = Array.isArray(app.screenshots)
+    ? app.screenshots
+    : (typeof app.screenshots === 'string' ? app.screenshots.split(/[\n,]+/).map(s=>s.trim()).filter(Boolean) : []);
+
+  const features = Array.isArray(app.features)
+    ? app.features
+    : (typeof app.features === 'string' ? app.features.split('\n').map(s=>s.trim()).filter(Boolean) : []);
+
+  const tags = Array.isArray(app.tags)
+    ? app.tags
+    : (typeof app.tags === 'string' ? app.tags.split(/[,\n]+/).map(s=>s.trim()).filter(Boolean) : []);
+
+  let html = `
+    <div class="detail-hero">
+      <div class="detail-icon">${iconHTML}</div>
+      <div style="flex:1;min-width:0">
+        <h1 class="detail-title">${esc(app.name||'Untitled')}</h1>
+        <div class="detail-dev">${esc(app.developer||'Unknown Developer')}</div>
+        <div class="detail-rating">
+          <span style="color:#fbbf24;font-weight:800">★ ${rating? rating.toFixed(1):'—'}</span>
+          <span>•</span>
+          <span>${fmtNum(app.downloads||0)} ডাউনলোড</span>
+          ${app.category ? `<span>•</span><span>${esc(app.category)}</span>` : ''}
+        </div>
+      </div>
+    </div>
+
+    <div class="detail-actions">
+      <button class="btn btn-primary" onclick="downloadApp('${esc(app.id)}')">
+        ⬇️ ডাউনলোড অ্যাপ
+      </button>
+      <button class="btn btn-ghost fav-btn" onclick="toggleFavorite('${esc(app.id)}')" title="Favorite">
+        <span id="favIcon" style="font-size:19px;color:${isFav?'#ef4444':'var(--muted)'}">${isFav?'❤️':'🤍'}</span>
+      </button>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-cell"><div class="sv">${esc(app.size||'—')}</div><div class="sl">সাইজ</div></div>
+      <div class="stat-cell"><div class="sv">${esc(app.version||'—')}</div><div class="sl">ভার্সন</div></div>
+      <div class="stat-cell"><div class="sv">${fmtNum(app.downloads||0)}</div><div class="sl">ডাউনলোড</div></div>
+      <div class="stat-cell"><div class="sv">${fmtNum(app.views||0)}</div><div class="sl">ভিউ</div></div>
+    </div>
+
+    <div class="detail-body">`;
+
+  if(app.shortDesc){
+    html += `<div class="block"><h3>📝 সংক্ষিপ্ত বিবরণ</h3><p>${esc(app.shortDesc)}</p></div>`;
+  }
+
+  if(shots.length){
+    html += `
+      <div class="block">
+        <h3>🖼️ স্ক্রিনশট</h3>
+        <div class="shots">
+          ${shots.map(s=>`<img src="${esc(s)}" loading="lazy" alt="" onerror="this.style.display='none'">`).join('')}
+        </div>
+      </div>`;
+  }
+
+  if(app.description){
+    html += `<div class="block"><h3>📄 বিস্তারিত বিবরণ</h3><p>${esc(app.description)}</p></div>`;
+  }
+
+  if(app.whatsNew){
+    html += `<div class="block"><h3>🆕 নতুন কী আছে</h3><p>${esc(app.whatsNew)}</p></div>`;
+  }
+
+  if(features.length){
+    html += `
+      <div class="block">
+        <h3>✨ ফিচারসমূহ</h3>
+        <ul class="feat-list">${features.map(f=>`<li>${esc(f)}</li>`).join('')}</ul>
+      </div>`;
+  }
+
+  // Info table
+  html += `
+    <div class="block">
+      <h3>ℹ️ অ্যাপ তথ্য</h3>
+      <div class="info-list">
+        <div class="info-row"><span class="k">ভার্সন</span><span class="v">${esc(app.version||'—')}</span></div>
+        <div class="info-row"><span class="k">সাইজ</span><span class="v">${esc(app.size||'—')}</span></div>
+        <div class="info-row"><span class="k">Android প্রয়োজন</span><span class="v">${esc(app.android||'—')}</span></div>
+        <div class="info-row"><span class="k">ক্যাটাগরি</span><span class="v">${esc(app.category||'—')}</span></div>
+        <div class="info-row"><span class="k">প্যাকেজ নাম</span><span class="v">${esc(app.packageName||'—')}</span></div>
+        <div class="info-row"><span class="k">ডেভেলপার</span><span class="v">${esc(app.developer||'—')}</span></div>
+        <div class="info-row"><span class="k">সর্বশেষ আপডেট</span><span class="v">${fmtDate(app.updatedAt||app.createdAt)}</span></div>
+        <div class="info-row"><span class="k">যোগ করা হয়েছে</span><span class="v">${fmtDate(app.createdAt)}</span></div>
+      </div>
+    </div>`;
+
+  if(tags.length){
+    html += `
+      <div class="block">
+        <h3>🏷️ ট্যাগ</h3>
+        <div class="tag-row">${tags.map(t=>`<span class="tag">#${esc(t)}</span>`).join('')}</div>
+      </div>`;
+  }
+
+  // Report button
+  html += `
+    <div class="block">
+      <button class="btn btn-ghost btn-block" onclick="openReportModal('${esc(app.id)}')" style="color:var(--danger)">
+        🚨 এই অ্যাপটি রিপোর্ট করুন
+      </button>
+    </div>
+  `;
+
+  html += `</div>`;
+  $('#detailContent').innerHTML = html;
+}
+
+/* ================================================================
+   DOWNLOAD SYSTEM (external URL)
+   ================================================================ */
+async function downloadApp(appId){
+  const app = STATE.apps[appId];
+  if(!app){ toast('অ্যাপ পাওয়া যায়নি','error'); return; }
+
+  const url = app.downloadUrl || app.downloadPageUrl;
+  if(!url || !/^https?:\/\//i.test(url)){
+    toast('এই অ্যাপের ডাউনলোড লিংক এখনো সেট করা হয়নি।','error');
+    return;
+  }
+
+  toast('ডাউনলোড পেজে নিয়ে যাওয়া হচ্ছে...','success');
+
+  // 1) Increment download counter
+  db.ref('apps/' + appId + '/downloads').transaction(c => (c||0) + 1).catch(()=>{});
+
+  // 2) Log download history
+  const uid = STATE.user ? STATE.user.uid : 'guest';
+  const rec = {
+    appId,
+    appName: app.name || '',
+    appIcon: app.icon || '',
+    uid,
+    userEmail: STATE.user ? (STATE.user.email||'') : '',
+    ts: Date.now()
+  };
+  db.ref('downloads').push(rec).catch(()=>{});
+
+  // 3) Redirect to external download page
+  setTimeout(()=>{ window.open(url, '_blank', 'noopener,noreferrer'); }, 120);
+}
+
+/* ================================================================
+   FAVORITES
+   ================================================================ */
+async function toggleFavorite(appId){
+  if(!STATE.user){
+    toast('ফেভারিট করতে লগইন করুন','warn');
+    openAuthModal('login');
+    return;
+  }
+  const ref = db.ref('favorites/' + STATE.user.uid + '/' + appId);
+  const isFav = !!STATE.favorites[appId];
+  try{
+    if(isFav){
+      await ref.remove();
+      toast('ফেভারিট থেকে সরানো হয়েছে');
+    } else {
+      await ref.set(true);
+      toast('ফেভারিটে যোগ করা হয়েছে ❤️','success');
+    }
+    // Update open detail icon instantly (listener will update STATE)
+    const iconEl = document.getElementById('favIcon');
+    if(iconEl){
+      iconEl.textContent = isFav ? '🤍' : '❤️';
+      iconEl.style.color = isFav ? 'var(--muted)' : '#ef4444';
+    }
+  }catch(e){
+    console.error(e);
+    toast('সমস্যা হয়েছে: ' + (e.message||''), 'error');
+  }
+}
+
+function renderFavorites(){
+  if(!STATE.user){
+    $('#favoritesContent').innerHTML = `
+      <div class="empty">
+        <div class="ei">🔐</div>
+        <h4>লগইন করুন</h4>
+        <p>ফেভারিট অ্যাপ দেখতে লগইন করা প্রয়োজন।</p>
+        <button class="btn btn-primary" style="margin-top:16px" onclick="openAuthModal('login')">লগইন / রেজিস্টার</button>
+      </div>`;
+    return;
+  }
+  const favIds = Object.keys(STATE.favorites);
+  const list = favIds.map(id => STATE.apps[id]).filter(a => a && a.published !== false).map(a=>({id:a.__id||'', ...a}));
+
+  // need ids
+  const withIds = favIds
+    .map(id => STATE.apps[id] ? { id, ...STATE.apps[id] } : null)
+    .filter(Boolean)
+    .filter(a => a.published !== false);
+
+  if(!withIds.length){
+    $('#favoritesContent').innerHTML = `
+      <div class="empty">
+        <div class="ei">⭐</div>
+        <h4>কোনো ফেভারিট অ্যাপ নেই</h4>
+        <p>অ্যাপ ডিটেইলস থেকে ❤️ আইকনে ট্যাপ করে ফেভারিট যোগ করুন।</p>
+        <button class="btn btn-primary" style="margin-top:16px" onclick="go('home')">অ্যাপ ব্রাউজ করুন</button>
+      </div>`;
+    return;
+  }
+  $('#favoritesContent').innerHTML = `<div class="grid">${withIds.map(a=>appCardHTML(a)).join('')}</div>`;
+}
+
+/* ================================================================
+   NOTIFICATIONS
+   ================================================================ */
+function readMap(){
+  try{ return JSON.parse(localStorage.getItem('av_read_' + (STATE.user?STATE.user.uid:'guest')) || '{}'); }
+  catch(e){ return {}; }
+}
+function saveReadMap(m){
+  try{ localStorage.setItem('av_read_' + (STATE.user?STATE.user.uid:'guest'), JSON.stringify(m)); }catch(e){}
+}
+function notifList(){
+  return Object.entries(STATE.notifications)
+    .map(([id,n])=>({id, ...n}))
+    .filter(n => n.published !== false)
+    .sort((a,b) => (b.createdAt||b.date||0) - (a.createdAt||a.date||0));
+}
+function updateNotifBadge(){
+  const read = readMap();
+  const unread = notifList().filter(n => !read[n.id]).length;
+  const b = $('#notifBadge');
+  if(unread > 0){ b.textContent = unread > 99 ? '99+' : unread; b.classList.add('show'); }
+  else b.classList.remove('show');
+}
+function renderNotifications(){
+  const list = notifList();
+  if(!list.length){
+    $('#notifContent').innerHTML = `<div class="empty"><div class="ei">🔔</div><h4>কোনো নোটিফিকেশন নেই</h4><p>নতুন ঘোষণা এলে এখানে দেখা যাবে।</p></div>`;
+    return;
+  }
+  const read = readMap();
+  $('#notifContent').innerHTML = list.map(n => {
+    const unread = !read[n.id];
+    const img = n.image
+      ? `<img class="ni-img" src="${esc(n.image)}" alt="" onerror="this.style.display='none'">`
+      : `<div class="ni-ic">${n.type === 'update' ? '🔄' : n.type === 'offer' ? '🎁' : n.type === 'alert' ? '⚠️' : '📢'}</div>`;
+    return `
+      <div class="notif-item ${unread?'unread':''}" onclick="readNotif('${esc(n.id)}')">
+        ${unread ? '<span class="dot-unread"></span>' : ''}
+        ${img}
+        <div style="flex:1;min-width:0">
+          <h4>${esc(n.title||'Notification')}</h4>
+          <p>${esc(n.message||'')}</p>
+          <div class="nt">${fmtDate(n.createdAt||n.date)}</div>
+        </div>
+      </div>`;
+  }).join('');
+}
+function readNotif(id){
+  const m = readMap();
+  m[id] = true;
+  saveReadMap(m);
+  updateNotifBadge();
+  renderNotifications();
+}
+function markAllRead(){
+  const m = readMap();
+  notifList().forEach(n => m[n.id] = true);
+  saveReadMap(m);
+  updateNotifBadge();
+  renderNotifications();
+  toast('সব নোটিফিকেশন পড়া হয়েছে','success');
+}
+
+/* ================================================================
+   AUTHENTICATION
+   ================================================================ */
+function openAuthModal(mode){
+  mode = mode || 'login';
+  const isLogin = mode === 'login';
+  openModal(`
+    <div class="modal-head">
+      <h3>${isLogin ? '🔐 লগইন' : '✨ রেজিস্টার'}</h3>
+      <button class="icon-btn" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      ${isLogin ? '' : `
+      <div class="field">
+        <label>পূর্ণ নাম</label>
+        <input id="auName" class="input" placeholder="আপনার নাম" autocomplete="name">
+      </div>`}
+      <div class="field">
+        <label>ইমেইল</label>
+        <input id="auEmail" class="input" type="email" placeholder="you@example.com" autocomplete="email">
+      </div>
+      <div class="field">
+        <label>পাসওয়ার্ড</label>
+        <input id="auPass" class="input" type="password" placeholder="কমপক্ষে ৬ অক্ষর" autocomplete="${isLogin?'current-password':'new-password'}">
+      </div>
+      <div id="auError" style="display:none;color:var(--danger);font-size:12.5px;margin-bottom:12px"></div>
+      <button class="btn btn-primary btn-block" id="auBtn" onclick="submitAuth('${mode}')">
+        ${isLogin ? 'লগইন করুন' : 'অ্যাকাউন্ট তৈরি করুন'}
+      </button>
+      <div style="text-align:center;margin-top:14px;font-size:13px">
+        ${isLogin
+          ? `অ্যাকাউন্ট নেই? <a href="javascript:void(0)" onclick="openAuthModal('register')" style="font-weight:700">রেজিস্টার করুন</a>`
+          : `আগে থেকেই অ্যাকাউন্ট আছে? <a href="javascript:void(0)" onclick="openAuthModal('login')" style="font-weight:700">লগইন করুন</a>`}
+      </div>
+      ${isLogin ? `<div style="text-align:center;margin-top:8px;font-size:13px">
+        <a href="javascript:void(0)" onclick="openAuthModal('reset')" style="color:var(--muted)">পাসওয়ার্ড ভুলে গেছেন?</a>
+      </div>` : ''}
+    </div>
+  `);
+  setTimeout(()=>{ const e = $('#auEmail'); if(e) e.focus(); }, 120);
+}
+
+function openResetModal(){
+  openModal(`
+    <div class="modal-head"><h3>🔑 পাসওয়ার্ড রিসেট</h3><button class="icon-btn" onclick="closeModal()">✕</button></div>
+    <div class="modal-body">
+      <div class="field"><label>ইমেইল</label><input id="rsEmail" class="input" type="email" placeholder="you@example.com"></div>
+      <div id="rsError" style="display:none;color:var(--danger);font-size:12.5px;margin-bottom:12px"></div>
+      <button class="btn btn-primary btn-block" onclick="submitReset()">রিসেট লিংক পাঠান</button>
+    </div>`);
+}
+// route 'reset' to reset modal
+const _origOpenAuth = openAuthModal;
+openAuthModal = function(mode){
+  if(mode === 'reset') return openResetModal();
+  return _origOpenAuth(mode);
+};
+
+function authErrorMsg(e){
+  const c = (e && e.code) || '';
+  const map = {
+    'auth/invalid-email':'ইমেইল ঠিকানাটি সঠিক নয়।',
+    'auth/user-disabled':'এই অ্যাকাউন্টটি ব্লক করা হয়েছে।',
+    'auth/user-not-found':'এই ইমেইলে কোনো অ্যাকাউন্ট নেই।',
+    'auth/wrong-password':'পাসওয়ার্ড ভুল হয়েছে।',
+    'auth/invalid-credential':'ইমেইল বা পাসওয়ার্ড ভুল।',
+    'auth/email-already-in-use':'এই ইমেইল দিয়ে আগেই অ্যাকাউন্ট আছে।',
+    'auth/weak-password':'পাসওয়ার্ড খুব দুর্বল (কমপক্ষে ৬ অক্ষর)।',
+    'auth/too-many-requests':'অনেকবার চেষ্টা করা হয়েছে। কিছুক্ষণ পর আবার চেষ্টা করুন।',
+    'auth/network-request-failed':'নেটওয়ার্ক সমস্যা। ইন্টারনেট চেক করুন।',
+    'auth/operation-not-allowed':'Firebase Console-এ Email/Password লগইন চালু করুন।'
+  };
+  return map[c] || (e && e.message) || 'একটি অজানা সমস্যা হয়েছে।';
+}
+
+async function submitAuth(mode){
+  const email = ($('#auEmail')?.value || '').trim();
+  const pass  = ($('#auPass')?.value || '');
+  const name  = ($('#auName')?.value || '').trim();
+  const errEl = $('#auError');
+  const btn   = $('#auBtn');
+
+  function showErr(m){ errEl.textContent = m; errEl.style.display = 'block'; }
+
+  errEl.style.display = 'none';
+  if(!email || !/^\S+@\S+\.\S+$/.test(email)) return showErr('সঠিক ইমেইল দিন।');
+  if(pass.length < 6) return showErr('পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে।');
+  if(mode === 'register' && name.length < 2) return showErr('আপনার নাম লিখুন।');
+
+  btn.disabled = true;
+  btn.textContent = 'অপেক্ষা করুন...';
+
+  try{
+    if(mode === 'register'){
+      const cred = await auth.createUserWithEmailAndPassword(email, pass);
+      await cred.user.updateProfile({ displayName: name });
+      await db.ref('users/' + cred.user.uid).update({
+        name, email,
+        photo: '',
+        createdAt: Date.now(),
+        lastActive: Date.now(),
+        status: 'active'
+      });
+      toast('অ্যাকাউন্ট তৈরি হয়েছে! স্বাগতম 🎉','success');
+    } else {
+      await auth.signInWithEmailAndPassword(email, pass);
+      toast('লগইন সফল হয়েছে','success');
+    }
+    closeModal();
+  }catch(e){
+    console.error(e);
+    showErr(authErrorMsg(e));
+  } finally {
+    btn.disabled = false;
+    btn.textContent = mode === 'register' ? 'অ্যাকাউন্ট তৈরি করুন' : 'লগইন করুন';
+  }
+}
+
+async function submitReset(){
+  const email = ($('#rsEmail')?.value || '').trim();
+  const errEl = $('#rsError');
+  if(!email){ errEl.textContent='ইমেইল দিন।'; errEl.style.display='block'; return; }
+  try{
+    await auth.sendPasswordResetEmail(email);
+    closeModal();
+    toast('রিসেট লিংক ইমেইলে পাঠানো হয়েছে 📧','success');
+  }catch(e){
+    errEl.textContent = authErrorMsg(e);
+    errEl.style.display = 'block';
+  }
+}
+
+async function logoutUser(){
+  const ok = await confirmDialog('লগআউট', 'আপনি কি সত্যিই লগআউট করতে চান?');
+  if(!ok) return;
+  try{
+    await auth.signOut();
+    toast('লগআউট হয়েছে','success');
+    go('home');
+  }catch(e){ toast('লগআউট ব্যর্থ: '+e.message,'error'); }
+}
+
+/* ================================================================
+   AUTH STATE
+   ================================================================ */
+auth.onAuthStateChanged(async user => {
+  STATE.user = user || null;
+
+  if(user){
+    // Update user record
+    db.ref('users/' + user.uid).update({
+      name: user.displayName || (user.email||'').split('@')[0],
+      email: user.email || '',
+      lastActive: Date.now()
+    }).catch(()=>{});
+
+    // Profile listener
+    db.ref('users/' + user.uid).on('value', snap => {
+      STATE.profile = snap.val() || {};
+      if(STATE.view === 'profile') renderProfile();
+    });
+
+    // Favorites listener
+    db.ref('favorites/' + user.uid).on('value', snap => {
+      STATE.favorites = snap.val() || {};
+      if(STATE.view === 'favorites') renderFavorites();
+      if(_currentDetailApp) renderDetail(_currentDetailApp);
+    });
+
+    // Download history listener
+    db.ref('downloads').orderByChild('uid').equalTo(user.uid).limitToLast(200).on('value', snap => {
+      const v = snap.val() || {};
+      STATE.downloads = Object.entries(v).map(([id,d])=>({id,...d})).sort((a,b)=>(b.ts||0)-(a.ts||0));
+      if(STATE.view === 'history') renderHistory();
+      if(STATE.view === 'profile') renderProfile();
+    }, err => console.warn('downloads query', err));
+
+    // My reports
+    db.ref('reports').orderByChild('uid').equalTo(user.uid).limitToLast(100).on('value', snap => {
+      const v = snap.val() || {};
+      STATE.reports = Object.entries(v).map(([id,r])=>({id,...r})).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+      if(STATE.view === 'reports') renderMyReports();
+    }, err => console.warn('reports query', err));
+
+  } else {
+    STATE.profile = null;
+    STATE.favorites = {};
+    STATE.downloads = [];
+    STATE.reports = [];
+    db.ref('users').off();
+    db.ref('favorites').off();
+    db.ref('downloads').off();
+    db.ref('reports').off();
+  }
+
+  updateHdrAvatar();
+  updateNotifBadge();
+  if(STATE.view === 'profile') renderProfile();
+  if(STATE.view === 'favorites') renderFavorites();
+});
+
+function updateHdrAvatar(){
+  const el = $('#hdrAvatar');
+  if(!el) return;
+  if(STATE.user){
+    const photo = STATE.profile?.photo || STATE.user.photoURL;
+    const nm = STATE.profile?.name || STATE.user.displayName || STATE.user.email || 'U';
+    el.innerHTML = photo
+      ? `<img src="${esc(photo)}" alt="" onerror="this.outerHTML='<span class=\\'av-fallback\\'>${esc(initials(nm))}</span>'">`
+      : `<span class="av-fallback">${esc(initials(nm))}</span>`;
+  } else {
+    el.innerHTML = `<span class="av-fallback" style="background:var(--card-2);color:var(--muted)">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+    </span>`;
+  }
+}
+
+/* ================================================================
+   PROFILE
+   ================================================================ */
+function renderProfile(){
+  if(!STATE.user){
+    $('#profileContent').innerHTML = `
+      <div class="empty" style="padding-top:56px">
+        <div class="ei">👤</div>
+        <h4>লগইন করা নেই</h4>
+        <p>প্রোফাইল, ফেভারিট এবং ডাউনলোড হিস্ট্রি দেখতে লগইন করুন।</p>
+        <div style="display:flex;gap:10px;justify-content:center;margin-top:18px;flex-wrap:wrap">
+          <button class="btn btn-primary" onclick="openAuthModal('login')">লগইন</button>
+          <button class="btn btn-ghost" onclick="openAuthModal('register')">রেজিস্টার</button>
+        </div>
+      </div>`;
+    return;
+  }
+
+  const nm = STATE.profile?.name || STATE.user.displayName || (STATE.user.email||'').split('@')[0];
+  const photo = STATE.profile?.photo || STATE.user.photoURL || '';
+  const created = STATE.profile?.createdAt || STATE.user.metadata?.creationTime;
+  const favCount = Object.keys(STATE.favorites).length;
+  const dlCount = STATE.downloads.length;
+
+  $('#profileContent').innerHTML = `
+    <div class="profile-head">
+      ${photo
+        ? `<img class="pv" src="${esc(photo)}" alt="" onerror="this.outerHTML='<div class=\\'pv\\'>${esc(initials(nm))}</div>'">`
+        : `<div class="pv">${esc(initials(nm))}</div>`}
+      <h2>${esc(nm)}</h2>
+      <p>${esc(STATE.user.email||'')}</p>
+      <div style="display:flex;gap:22px;margin-top:8px">
+        <div style="text-align:center">
+          <div style="font-size:17px;font-weight:800">${favCount}</div>
+          <div style="font-size:11px;color:var(--muted)">ফেভারিট</div>
+        </div>
+        <div style="text-align:center">
+          <div style="font-size:17px;font-weight:800">${dlCount}</div>
+          <div style="font-size:11px;color:var(--muted)">ডাউনলোড</div>
+        </div>
+        <div style="text-align:center">
+          <div style="font-size:17px;font-weight:800">${STATE.reports.length}</div>
+          <div style="font-size:11px;color:var(--muted)">রিপোর্ট</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section" style="margin-top:6px">
+      <div class="menu-list">
+        <button class="menu-item" onclick="openEditProfile()">
+          <span class="mi-ic">✏️</span> প্রোফাইল এডিট করুন
+          <span class="chev">›</span>
+        </button>
+        <button class="menu-item" onclick="go('favorites')">
+          <span class="mi-ic">⭐</span> আমার ফেভারিট
+          <span class="chev">›</span>
+        </button>
+        <button class="menu-item" onclick="go('history')">
+          <span class="mi-ic">📥</span> ডাউনলোড হিস্ট্রি
+          <span class="chev">›</span>
+        </button>
+        <button class="menu-item" onclick="go('reports')">
+          <span class="mi-ic">🚨</span> আমার রিপোর্ট
+          <span class="chev">›</span>
+        </button>
+        <button class="menu-item" onclick="go('notifications')">
+          <span class="mi-ic">🔔</span> নোটিফিকেশন
+          <span class="chev">›</span>
+        </button>
+        <button class="menu-item" onclick="go('support')">
+          <span class="mi-ic">📩</span> সাপোর্ট / যোগাযোগ
+          <span class="chev">›</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="menu-list">
+        <div class="menu-item" style="cursor:default">
+          <span class="mi-ic">📅</span> যোগদানের তারিখ
+          <span style="margin-left:auto;font-size:12.5px;color:var(--muted);font-weight:500">${created ? new Date(created).toLocaleDateString('bn-BD') : '—'}</span>
+        </div>
+        <div class="menu-item" style="cursor:default">
+          <span class="mi-ic">🆔</span> ইউজার আইডি
+          <span style="margin-left:auto;font-size:11px;color:var(--muted);font-weight:500;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(STATE.user.uid)}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <button class="btn btn-ghost btn-block" style="color:var(--danger)" onclick="logoutUser()">🚪 লগআউট</button>
+    </div>
+  `;
+}
+
+function openEditProfile(){
+  const nm = STATE.profile?.name || '';
+  const ph = STATE.profile?.photo || '';
+  openModal(`
+    <div class="modal-head"><h3>✏️ প্রোফাইল এডিট</h3><button class="icon-btn" onclick="closeModal()">✕</button></div>
+    <div class="modal-body">
+      <div class="field"><label>নাম</label><input id="epName" class="input" value="${esc(nm)}" placeholder="আপনার নাম"></div>
+      <div class="field"><label>প্রোফাইল ছবির URL</label><input id="epPhoto" class="input" value="${esc(ph)}" placeholder="https://..."></div>
+      <div id="epError" style="display:none;color:var(--danger);font-size:12.5px;margin-bottom:12px"></div>
+      <button class="btn btn-primary btn-block" onclick="saveProfile()">সংরক্ষণ করুন</button>
+    </div>`);
+}
+async function saveProfile(){
+  const name = ($('#epName')?.value || '').trim();
+  const photo = ($('#epPhoto')?.value || '').trim();
+  const errEl = $('#epError');
+  if(name.length < 2){ errEl.textContent='নাম কমপক্ষে ২ অক্ষরের হতে হবে।'; errEl.style.display='block'; return; }
+  try{
+    await db.ref('users/' + STATE.user.uid).update({ name, photo });
+    await STATE.user.updateProfile({ displayName: name, photoURL: photo || null }).catch(()=>{});
+    closeModal();
+    toast('প্রোফাইল আপডেট হয়েছে','success');
+    renderProfile();
+  }catch(e){
+    errEl.textContent = 'সংরক্ষণ ব্যর্থ: ' + e.message;
+    errEl.style.display = 'block';
+  }
+}
+
+/* ================================================================
+   DOWNLOAD HISTORY
+   ================================================================ */
+function renderHistory(){
+  if(!STATE.user){
+    $('#historyContent').innerHTML = `<div class="empty"><div class="ei">🔐</div><h4>লগইন করুন</h4><p>ডাউনলোড হিস্ট্রি দেখতে লগইন করুন।</p><button class="btn btn-primary" style="margin-top:16px" onclick="openAuthModal('login')">লগইন</button></div>`;
+    return;
+  }
+  if(!STATE.downloads.length){
+    $('#historyContent').innerHTML = `<div class="empty"><div class="ei">📥</div><h4>কোনো ডাউনলোড নেই</h4><p>আপনি এখনো কোনো অ্যাপ ডাউনলোড করেননি।</p></div>`;
+    return;
+  }
+  $('#historyContent').innerHTML = STATE.downloads.map(d => {
+    const app = STATE.apps[d.appId];
+    const icon = (app && app.icon) || d.appIcon;
+    return `
+      <div class="list-row">
+        <div class="lr-icon">
+          ${icon ? `<img src="${esc(icon)}" alt="" loading="lazy">`
+                 : `<div style="width:100%;height:100%;display:grid;place-items:center;background:linear-gradient(135deg,var(--primary),var(--primary-2));color:#fff;font-weight:800">${esc((d.appName||'A')[0].toUpperCase())}</div>`}
+        </div>
+        <div class="lr-main">
+          <h4>${esc(d.appName||'Unknown App')}</h4>
+          <p>${fmtDate(d.ts)}</p>
+        </div>
+        ${app ? `<button class="btn btn-ghost btn-sm" onclick="openApp('${esc(d.appId)}')">খুলুন</button>` : ''}
+      </div>`;
+  }).join('');
+}
+
+/* ================================================================
+   MY REPORTS
+   ================================================================ */
+function renderMyReports(){
+  if(!STATE.user){
+    $('#myReportsContent').innerHTML = `<div class="empty"><div class="ei">🔐</div><h4>লগইন করুন</h4></div>`;
+    return;
+  }
+  if(!STATE.reports.length){
+    $('#myReportsContent').innerHTML = `<div class="empty"><div class="ei">🚨</div><h4>কোনো রিপোর্ট নেই</h4><p>আপনি এখনো কোনো অ্যাপ রিপোর্ট করেননি।</p></div>`;
+    return;
+  }
+  $('#myReportsContent').innerHTML = STATE.reports.map(r => {
+    const badge = r.status === 'resolved'
+      ? '<span style="color:var(--success);font-size:11px;font-weight:700">✔ সমাধান হয়েছে</span>'
+      : r.status === 'reviewing'
+      ? '<span style="color:var(--warn);font-size:11px;font-weight:700">⏳ পর্যালোচনায়</span>'
+      : '<span style="color:var(--muted);font-size:11px;font-weight:700">● অপেক্ষমাণ</span>';
+    return `
+      <div class="list-row" style="align-items:flex-start;flex-direction:column;gap:6px">
+        <div style="display:flex;width:100%;align-items:center;gap:10px">
+          <strong style="font-size:13.5px;flex:1">${esc(r.appName||'App')}</strong>
+          ${badge}
+        </div>
+        <div style="font-size:12px;color:var(--muted)"><b>কারণ:</b> ${esc(r.reason||'—')}</div>
+        ${r.message ? `<div style="font-size:12.5px;color:var(--muted)">${esc(r.message)}</div>` : ''}
+        <div style="font-size:11px;color:var(--muted)">${fmtDate(r.createdAt)}</div>
+      </div>`;
+  }).join('');
+}
+
+/* ================================================================
+   REPORT APP
+   ================================================================ */
+function openReportModal(appId){
+  const app = STATE.apps[appId];
+  if(!app) return;
+  openModal(`
+    <div class="modal-head"><h3>🚨 অ্যাপ রিপোর্ট</h3><button class="icon-btn" onclick="closeModal()">✕</button></div>
+    <div class="modal-body">
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:11px;margin-bottom:14px;font-size:13px">
+        রিপোর্ট করা হচ্ছে: <b>${esc(app.name||'')}</b>
+      </div>
+      <div class="field">
+        <label>কারণ</label>
+        <select id="rpReason" class="input">
+          <option value="Broken download link">ডাউনলোড লিংক কাজ করে না</option>
+          <option value="Fake / Malware">ভুয়া / ম্যালওয়্যার</option>
+          <option value="Copyright violation">কপিরাইট লঙ্ঘন</option>
+          <option value="Wrong information">ভুল তথ্য</option>
+          <option value="Inappropriate content">অনুপযুক্ত কনটেন্ট</option>
+          <option value="Other">অন্যান্য</option>
+        </select>
+      </div>
+      <div class="field"><label>বিস্তারিত (ঐচ্ছিক)</label><textarea id="rpMessage" class="input" placeholder="বিস্তারিত লিখুন..."></textarea></div>
+      <div id="rpError" style="display:none;color:var(--danger);font-size:12.5px;margin-bottom:12px"></div>
+      <button class="btn btn-danger btn-block" onclick="submitReport('${esc(appId)}')">রিপোর্ট পাঠান</button>
+    </div>`);
+}
+async function submitReport(appId){
+  const app = STATE.apps[appId];
+  const reason = $('#rpReason')?.value || 'Other';
+  const message = ($('#rpMessage')?.value || '').trim();
+  const errEl = $('#rpError');
+
+  if(!STATE.user){
+    closeModal();
+    toast('রিপোর্ট করতে লগইন করুন','warn');
+    openAuthModal('login');
+    return;
+  }
+
+  try{
+    await db.ref('reports').push({
+      appId,
+      appName: app?.name || '',
+      uid: STATE.user.uid,
+      userEmail: STATE.user.email || '',
+      userName: STATE.profile?.name || STATE.user.displayName || '',
+      reason, message,
+      status: 'pending',
+      createdAt: Date.now()
+    });
+    closeModal();
+    toast('রিপোর্ট পাঠানো হয়েছে। ধন্যবাদ! 🙏','success');
+  }catch(e){
+    errEl.textContent = 'পাঠানো ব্যর্থ: ' + e.message;
+    errEl.style.display = 'block';
+  }
+}
+
+/* ================================================================
+   SUPPORT
+   ================================================================ */
+function renderSupportInfo(){
+  const s = STATE.settings || {};
+  const links = [];
+  if(s.supportEmail) links.push(`<div class="info-row"><span class="k">📧 ইমেইল</span><span class="v"><a href="mailto:${esc(s.supportEmail)}">${esc(s.supportEmail)}</a></span></div>`);
+  if(s.telegram)     links.push(`<div class="info-row"><span class="k">✈️ Telegram</span><span class="v"><a href="${esc(s.telegram)}" target="_blank" rel="noopener">চ্যানেলে যান</a></span></div>`);
+  if(s.facebook)     links.push(`<div class="info-row"><span class="k">📘 Facebook</span><span class="v"><a href="${esc(s.facebook)}" target="_blank" rel="noopener">পেজে যান</a></span></div>`);
+
+  $('#supportInfo').innerHTML = links.length
+    ? `<div class="info-list">${links.join('')}</div>`
+    : '';
+
+  // Prefill from profile
+  if(STATE.user){
+    const n = $('#supName'), e = $('#supEmail');
+    if(n && !n.value) n.value = STATE.profile?.name || STATE.user.displayName || '';
+    if(e && !e.value) e.value = STATE.user.email || '';
+  }
+}
+
+async function submitSupport(){
+  const name = ($('#supName')?.value || '').trim();
+  const email = ($('#supEmail')?.value || '').trim();
+  const subject = ($('#supSubject')?.value || '').trim();
+  const message = ($('#supMessage')?.value || '').trim();
+  const btn = $('#supSubmit');
+
+  if(name.length < 2){ toast('আপনার নাম লিখুন','warn'); return; }
+  if(!/^\S+@\S+\.\S+$/.test(email)){ toast('সঠিক ইমেইল দিন','warn'); return; }
+  if(subject.length < 2){ toast('বিষয় লিখুন','warn'); return; }
+  if(message.length < 5){ toast('বার্তা লিখুন','warn'); return; }
+
+  btn.disabled = true; btn.textContent = 'পাঠানো হচ্ছে...';
+  try{
+    await db.ref('supportMessages').push({
+      name, email, subject, message,
+      uid: STATE.user ? STATE.user.uid : 'guest',
+      status: 'unread',
+      createdAt: Date.now()
+    });
+    $('#supSubject').value = '';
+    $('#supMessage').value = '';
+    toast('বার্তা পাঠানো হয়েছে। আমরা শীঘ্রই যোগাযোগ করব। ✅','success');
+  }catch(e){
+    toast('পাঠানো ব্যর্থ: ' + e.message,'error');
+  } finally {
+    btn.disabled = false; btn.textContent = 'বার্তা পাঠান';
+  }
+}
+
+/* ================================================================
+   BOOTSTRAP
+   ================================================================ */
+(function boot(){
+  // Initial skeleton
+  renderHome();
+
+  // Data listeners
+  listenSettings();
+  listenCategories();
+  listenApps();
+  listenNotifications();
+
+  updateHdrAvatar();
+
+  // Deep link: #app=xxx
+  const hash = location.hash.replace('#','');
+  if(hash.startsWith('app=')){
+    const id = hash.slice(4);
+    setTimeout(()=>{ if(STATE.apps[id]) openApp(id); }, 900);
+  } else if(hash && document.getElementById('view-' + hash)){
+    go(hash);
+  }
+
+  // Handle back button for detail page
+  window.addEventListener('popstate', ()=>{
+    if($('#detailPage').classList.contains('open')) closeDetail();
+  });
+})();
+</script>
+
+</<body>
+
+</<html>
